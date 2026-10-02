@@ -1,0 +1,11 @@
+{
+  "name": "Control de Almacén de Obra",
+  "short_name": "Almacén",
+  "description": "Kardex valorizado, compras, varias obras y préstamos entre obras. Funciona sin internet.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDEEEA",
+  "theme_color": "#23282D",
+  "lang": "es"
+}

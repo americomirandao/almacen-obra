@@ -1,0 +1,3833 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#23282D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="format-detection" content="telephone=no">
+<title>Control de Almacén de Obra v5</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,.08)}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#EDEEEA;color:#22272B;font-size:15px;line-height:1.4}
+.mono{font-family:'SFMono-Regular',ui-monospace,'Roboto Mono',Consolas,Menlo,monospace}
+.hidden{display:none !important}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+a{color:#1F5FA8}
+
+#hdr{background:#23282D;color:#fff;padding:14px 16px 12px}
+#hdr .h-obra{font-size:16px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+#hdr .h-sub{margin-top:6px;font-size:12px;color:#C9CCC7}
+#hdr .h-sub b{color:#fff;font-weight:700}
+#hAlert{display:inline-block;background:#C05600;color:#fff;border-radius:4px;padding:1px 7px;font-weight:700;margin-left:6px}
+.stripe{height:5px;background:repeating-linear-gradient(45deg,#F2B705 0,#F2B705 9px,#23282D 9px,#23282D 18px)}
+#brandbar{background:#2E343B;color:#AEB4BB;font-size:10.5px;letter-spacing:.05em;text-align:center;padding:4px 8px}
+#persistWarn{background:#FFF4E5;color:#8A4B00;border-bottom:1px solid #F0C48A;padding:9px 14px;font-size:12.5px}
+#bkWarn{background:#FFF8E1;color:#6B4E00;border-bottom:1px solid #EFD27A;padding:8px 14px;font-size:12.5px}
+#bkWarn button{background:#F2B705;color:#23282D;border:none;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:800;margin-left:6px}
+#hdr .h-obra.sw{cursor:pointer}
+#hdr .h-obra .swi{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.02em;text-transform:none;background:#3A4149;color:#FFD65C;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+#loading{padding:40px 16px;text-align:center;color:#6B7076;font-size:14px}
+.morebtn{display:block;width:100%;background:#fff;border:1px dashed #9AA0A6;border-radius:8px;padding:10px 12px;font-size:13.5px;font-weight:700;color:#1F5FA8;margin:2px 0 10px;text-align:center}
+.chkrow{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:8px;font-size:14px;margin-top:10px}
+.chkrow input{width:20px;height:20px}
+
+main{padding:14px 12px 90px;max-width:640px;margin:0 auto}
+.vtitle{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#6B7076;margin:2px 2px 10px}
+.card{background:#fff;border:1px solid #D4D6D0;border-radius:10px;padding:14px;margin-bottom:12px}
+.lbl{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B7076;margin:12px 0 5px}
+.lbl:first-child{margin-top:0}
+.inp{display:block;width:100%;font-size:16px;padding:11px 12px;border:1px solid #C9CCC7;border-radius:8px;background:#fff;color:#22272B}
+.inp:focus{outline:2px solid #F2B705;border-color:#F2B705}
+.inp[readonly]{background:#F5F6F3;color:#6B7076}
+.row2{display:-webkit-flex;display:flex;gap:10px}
+.row2>div{-webkit-flex:1;flex:1;min-width:0}
+.rowa{display:-webkit-flex;display:flex;gap:8px;-webkit-flex-wrap:wrap;flex-wrap:wrap}
+
+.btn{display:block;width:100%;border:none;border-radius:9px;padding:14px;font-size:16px;font-weight:800;letter-spacing:.02em;min-height:48px}
+.btn.amber{background:#F2B705;color:#23282D}
+.btn.green{background:#1F7A3B;color:#fff}
+.btn.red{background:#BC3A2B;color:#fff}
+.btn.dark{background:#23282D;color:#fff}
+.btn.blue{background:#1F5FA8;color:#fff}
+.btn.ghost{background:#fff;color:#23282D;border:1px solid #C9CCC7;font-weight:700}
+.btn.sm{padding:10px;font-size:14px;min-height:42px}
+.btn:active{opacity:.85}
+.btn+.btn{margin-top:9px}
+.abtn{display:inline-block;-webkit-flex:1;flex:1;text-align:center;background:#fff;color:#23282D;border:1px solid #C9CCC7;border-radius:8px;padding:9px 8px;font-size:13px;font-weight:700;text-decoration:none;min-width:80px}
+.linkbtn{background:none;border:none;color:#1F5FA8;font-size:13.5px;font-weight:700;padding:8px 2px;text-align:left}
+.backbtn{background:none;border:none;color:#1F5FA8;font-size:14px;font-weight:800;padding:2px 2px 10px;text-align:left}
+
+.seg{display:-webkit-flex;display:flex;border:1px solid #C9CCC7;border-radius:9px;overflow:hidden;margin-bottom:4px}
+.seg button{-webkit-flex:1;flex:1;background:#fff;border:none;padding:11px 4px;font-size:13px;font-weight:700;color:#6B7076}
+.seg button.on{background:#23282D;color:#fff}
+
+.pick-chip{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;background:#F5F6F3;border:1px solid #C9CCC7;border-radius:9px;padding:10px 12px}
+.pick-chip .pcL{-webkit-flex:1;flex:1;min-width:0}
+.pick-chip .pcn{font-weight:700;font-size:14.5px}
+.pick-chip .pcs{font-size:12px;color:#6B7076;margin-top:2px}
+.pick-chip .chg{background:none;border:1px solid #C9CCC7;border-radius:7px;padding:7px 10px;font-size:12.5px;font-weight:700;color:#22272B}
+.cod{display:inline-block;background:#23282D;color:#FFD65C;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;letter-spacing:.03em;vertical-align:1px;margin-right:5px}
+.rucchip{display:inline-block;background:#E7EAF3;color:#3B4A6B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;margin-right:5px}
+.sug{margin-top:6px}
+.sug button{display:block;width:100%;text-align:left;background:#fff;border:1px solid #D4D6D0;border-radius:8px;padding:10px 12px;font-size:14px;margin-bottom:6px}
+.sug button .s2{display:block;font-size:12px;color:#6B7076;margin-top:2px}
+.sug .nores{font-size:13px;color:#6B7076;padding:8px 2px}
+
+.searchwrap{margin-bottom:10px}
+.mrow{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;background:#fff;border:1px solid #D4D6D0;border-left:4px solid #C9CCC7;border-radius:9px;padding:11px 12px;margin-bottom:8px}
+.mrow.low{border-left-color:#E67700;background:#FFFBF3}
+.mrow .ml{-webkit-flex:1;flex:1;min-width:0}
+.mrow .nom{font-weight:700;font-size:14.5px;margin-top:2px}
+.mrow .sub{font-size:12px;color:#6B7076;margin-top:2px}
+.mrow .mr{text-align:right;min-width:64px}
+.mrow .qty{font-size:20px;font-weight:800}
+.mrow.low .qty{color:#C05600}
+.mrow .und{font-size:11px;color:#6B7076;text-transform:uppercase;letter-spacing:.05em}
+.tag-min{display:inline-block;background:#C05600;color:#fff;border-radius:4px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:6px;vertical-align:2px}
+.empty{background:#fff;border:1px dashed #C9CCC7;border-radius:10px;padding:22px 16px;text-align:center;color:#6B7076;font-size:14px}
+.empty .btn{margin-top:12px}
+
+.khead{display:-webkit-flex;display:flex;gap:8px;-webkit-flex-wrap:wrap;flex-wrap:wrap;margin:10px 0 4px}
+.kpi{-webkit-flex:1;flex:1;min-width:88px;background:#fff;border:1px solid #D4D6D0;border-radius:9px;padding:9px 10px;text-align:center}
+.kpi .kv{font-size:16px;font-weight:800}
+.kpi .kl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B7076;margin-top:2px}
+.almchips{margin:6px 0 2px}
+.almchip{display:inline-block;background:#fff;border:1px solid #C9CCC7;border-radius:6px;padding:3px 8px;font-size:12px;margin:0 6px 6px 0}
+.almchip b{font-weight:800}
+
+.mv{position:relative;display:-webkit-flex;display:flex;gap:10px;background:#fff;border:1px solid #D4D6D0;border-left:4px solid #C9CCC7;border-radius:9px;padding:10px 34px 10px 12px;margin-bottom:8px}
+.mv.tI{border-left-color:#1F7A3B}
+.mv.tS{border-left-color:#BC3A2B}
+.mv.tD{border-left-color:#0E7490}
+.mv.tT{border-left-color:#7048B6}
+.mv.tE{border-left-color:#B7791F}
+.mv.tR{border-left-color:#2F855A}
+.chip-doc{display:inline-block;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:800}
+.tI .chip-doc{background:#E3F2E7;color:#1F7A3B}
+.tS .chip-doc{background:#FBE9E5;color:#BC3A2B}
+.tD .chip-doc{background:#E0F2F7;color:#0E7490}
+.tT .chip-doc{background:#EEE9F7;color:#7048B6}
+.tE .chip-doc{background:#FCF1DD;color:#8A5A12}
+.tR .chip-doc{background:#DDF3E6;color:#22643F}
+.mv .mvf{font-size:11px;color:#6B7076;margin-top:4px}
+.mv .mvl{min-width:86px}
+.mv .mvm{-webkit-flex:1;flex:1;min-width:0}
+.mv .mvn{font-weight:700;font-size:13.5px}
+.mv .mvd{font-size:12px;color:#6B7076;margin-top:2px}
+.mv .mvr{text-align:right;min-width:70px}
+.mv .mvq{font-size:16px;font-weight:800}
+.tI .mvq,.tD .mvq{color:#1F7A3B}
+.tS .mvq,.tE .mvq{color:#BC3A2B}
+.tR .mvq{color:#1F7A3B}
+.tT .mvq{color:#5B6470}
+.mv .mvs{font-size:11px;color:#6B7076;margin-top:3px}
+.mv .anu{position:absolute;top:6px;right:6px;background:none;border:none;color:#9AA0A6;font-size:16px;line-height:1;padding:6px}
+
+.ph{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;background:#fff;border:1px solid #D4D6D0;border-radius:9px;padding:9px 12px;margin-bottom:7px}
+.ph .phl{-webkit-flex:1;flex:1;min-width:0;font-size:13px}
+.ph .phl .p2{font-size:11.5px;color:#6B7076;margin-top:1px}
+.ph .php{font-size:15px;font-weight:800;text-align:right}
+.ph .phd{font-size:11px;font-weight:800;text-align:right;min-width:52px}
+.up{color:#BC3A2B}
+.down{color:#1F7A3B}
+.flat{color:#6B7076}
+
+.prow{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:10px;background:#fff;border:1px solid #D4D6D0;border-left:4px solid #3B4A6B;border-radius:9px;padding:11px 12px;margin-bottom:8px}
+.prow .pl{-webkit-flex:1;flex:1;min-width:0}
+.prow .pn{font-weight:700;font-size:14.5px;margin-top:2px}
+.prow .ps{font-size:12px;color:#6B7076;margin-top:2px}
+.prow .pr{text-align:right}
+.prow .pt{font-size:14px;font-weight:800}
+.prow .pc{font-size:11px;color:#6B7076}
+
+.stchip{display:inline-block;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:800;margin-right:6px;vertical-align:1px}
+.stCOT{background:#FFF3D6;color:#8A6400}
+.stEMI{background:#E3ECF9;color:#1F5FA8}
+.stPAR{background:#E0F2F7;color:#0E7490}
+.stREC{background:#E3F2E7;color:#1F7A3B}
+.stANU{background:#ECECEC;color:#6B7076}
+.ocitem{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #E2E4DF;font-size:13.5px}
+.ocitem .oi{-webkit-flex:1;flex:1;min-width:0}
+.ocitem .oi .p2{font-size:11.5px;color:#6B7076}
+.ocitem .oq{font-weight:800;white-space:nowrap}
+.ocitem button{background:none;border:none;color:#9AA0A6;font-size:15px;padding:4px 6px}
+.cotcard{border:1px solid #D4D6D0;border-radius:9px;padding:10px 12px;margin-bottom:10px;background:#FAFBF8}
+.cotcard .ct{font-weight:800;font-size:13.5px;margin-bottom:6px}
+.cotline{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:8px;margin-bottom:6px;font-size:12.5px}
+.cotline .cn{-webkit-flex:1;flex:1;min-width:0}
+.cotline input{width:96px;font-size:15px;padding:7px 8px;border:1px solid #C9CCC7;border-radius:7px;text-align:right}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px}
+table.cmp{border-collapse:collapse;font-size:12px;min-width:100%}
+table.cmp th,table.cmp td{border:1px solid #D4D6D0;padding:6px 7px;text-align:right;white-space:nowrap;background:#fff}
+table.cmp th{background:#F0F1ED;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#6B7076}
+table.cmp td.l,table.cmp th.l{text-align:left}
+table.cmp td.best{background:#E3F2E7;color:#1F7A3B;font-weight:800}
+table.cmp tr.tot td{font-weight:800;background:#F7F8F4}
+table.cmp tr.tot td.best{background:#D5EBDB}
+.progline{font-size:12.5px;padding:6px 0;border-bottom:1px solid #E2E4DF;display:-webkit-flex;display:flex;gap:8px}
+.progline .pn2{-webkit-flex:1;flex:1}
+.okc{color:#1F7A3B;font-weight:800}
+.pendc{color:#8A6400;font-weight:800}
+
+#toast{position:fixed;left:12px;right:12px;bottom:84px;background:#23282D;color:#fff;border-radius:9px;padding:12px 14px;font-size:14px;font-weight:700;text-align:center;z-index:60;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.modal{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(20,22,24,.55);z-index:70;padding:18px 14px;overflow:auto}
+.mbox{background:#fff;border-radius:12px;padding:16px;max-width:520px;margin:24px auto}
+.mbox h3{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;margin-bottom:4px}
+
+.sheet{background:#fff;border-radius:12px;max-width:560px;margin:14px auto;padding:18px;border:1px solid #D4D6D0}
+.sheet .sh-top{border-bottom:3px solid #23282D;padding-bottom:10px;margin-bottom:12px}
+.sheet .sh-obra{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.sheet .sh-emp{font-size:12px;color:#6B7076;margin-top:2px}
+.sheet .sh-doc{margin-top:10px;display:-webkit-flex;display:flex;-webkit-justify-content:space-between;justify-content:space-between;-webkit-align-items:center;align-items:center}
+.sheet .sh-tit{font-size:13px;font-weight:800;letter-spacing:.1em}
+.sheet table{width:100%;border-collapse:collapse;font-size:13px}
+.sheet td,.sheet th{border:1px solid #C9CCC7;padding:7px 8px;vertical-align:top;text-align:left}
+.sheet th{background:#F5F6F3;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6B7076}
+.sheet td.k{width:34%;background:#F5F6F3;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6B7076}
+.sheet td.r,.sheet th.r{text-align:right}
+.firmas{display:-webkit-flex;display:flex;gap:14px;margin-top:34px}
+.firmas div{-webkit-flex:1;flex:1;border-top:1px solid #22272B;padding-top:6px;font-size:11px;text-align:center;color:#6B7076;text-transform:uppercase;letter-spacing:.05em}
+.sh-brand{margin-top:16px;text-align:center;font-size:10.5px;color:#6B7076;letter-spacing:.04em}
+.vm-actions{max-width:560px;margin:0 auto}
+
+.almrow{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #E2E4DF;font-size:14px}
+.almrow .an{-webkit-flex:1;flex:1}
+.almrow .an b{font-weight:700}
+.almrow .an .p2{font-size:11.5px;color:#6B7076}
+.almrow button{background:none;border:1px solid #C9CCC7;border-radius:6px;padding:6px 9px;font-size:12px;font-weight:700}
+
+#tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #D4D6D0;display:-webkit-flex;display:flex;z-index:50;padding-bottom:0;padding-bottom:env(safe-area-inset-bottom)}
+#tabs button{-webkit-flex:1;flex:1;background:none;border:none;border-top:3px solid transparent;padding:9px 1px 10px;font-size:10.5px;font-weight:700;color:#6B7076;letter-spacing:.01em}
+#tabs button .ic{display:block;font-size:16px;line-height:1.1;margin-bottom:2px}
+#tabs button.on{color:#23282D;border-top-color:#F2B705}
+
+.note{font-size:12px;color:#6B7076;margin-top:8px}
+.eoinfo{font-size:12px;color:#8A5A12;background:#FCF6EA;border:1px solid #EFD9AE;border-radius:7px;padding:6px 8px;margin-top:5px}
+.eoinfo button{background:#B7791F;color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:11.5px;font-weight:800;margin-left:6px}
+.loan{background:#fff;border:1px solid #D4D6D0;border-left:4px solid #B7791F;border-radius:9px;padding:10px 12px;margin-bottom:8px;font-size:13px}
+.loan.in{border-left-color:#2F855A}
+.loan .lt{font-weight:800}
+.loan .ls{font-size:12px;color:#6B7076;margin-top:2px}
+.loan button{margin-top:8px}
+table.cmp td.zero{color:#B0B4B8}
+table.cmp td.need{background:#FFF4E5}
+.dangerbox{border:1px solid #E8B4AC;background:#FDF3F1}
+
+@media print{
+  .np{display:none !important}
+  body{background:#fff}
+  #docModal{position:static;background:#fff;padding:0;overflow:visible}
+  .sheet{border:none;margin:0;max-width:100%;border-radius:0}
+  .vm-actions{display:none !important}
+}
+</style>
+</head>
+<body>
+
+<header id="hdr" class="np">
+  <div class="h-obra" id="hObra">CONTROL DE ALMACÉN</div>
+  <div class="h-sub">Valorizado: <b id="hVal">S/ 0.00</b> · <b id="hItems">0</b> materiales<span id="hAlert" class="hidden"></span></div>
+</header>
+<div class="stripe np"></div>
+<div id="brandbar" class="np"></div>
+<div id="persistWarn" class="np hidden">⚠ Esta vista no guarda datos de forma permanente. Descarga el archivo y ábrelo en el navegador del teléfono; exporta respaldos.</div>
+<div id="bkWarn" class="np hidden"></div>
+<div id="loading" class="np">Cargando datos…</div>
+
+<main class="np hidden" id="mainApp">
+
+  <section id="v-stock" class="view">
+    <div class="vtitle">Stock actual</div>
+    <div id="stockAlmWrap" class="searchwrap hidden"><select id="stockAlmSel" class="inp"></select></div>
+    <div class="searchwrap"><input id="q" class="inp" placeholder="Buscar por código o nombre…" autocomplete="off"></div>
+    <div id="stockList"></div>
+    <div id="stockEmpty" class="empty hidden">
+      Aún no hay materiales registrados.
+      <button class="btn dark sm" id="bNewMat1">＋ Crear material</button>
+      <button class="btn ghost sm" id="bSeed1">Cargar catálogo base (Cusco)</button>
+    </div>
+    <button class="btn ghost sm" id="bNewMat2" style="margin-top:4px">＋ Nuevo material</button>
+    <div class="note" id="stockCredit" style="text-align:center"></div>
+  </section>
+
+  <section id="v-ing" class="view hidden">
+    <div class="vtitle">Ingresos y traslados</div>
+    <div class="card">
+      <div class="seg">
+        <button type="button" id="segC" class="on">Compra</button>
+        <button type="button" id="segD">Devolución</button>
+        <button type="button" id="segT">Traslado</button>
+        <button type="button" id="segO">Otra obra</button>
+      </div>
+      <div class="note" style="margin:4px 0 8px">Para compras con cotizaciones previas usa la pestaña <b>Compras</b>; aquí se registran ingresos directos.</div>
+
+      <span class="lbl">Material</span>
+      <div id="pc-ing" class="pick-chip hidden">
+        <div class="pcL"><div class="pcn"><span class="cod" id="pcc-ing"></span><span id="pcn-ing"></span></div><div class="pcs" id="pcs-ing"></div></div>
+        <button type="button" class="chg" data-clr="ing">Cambiar</button>
+      </div>
+      <div id="pw-ing">
+        <input id="pi-ing" class="inp" placeholder="Buscar material…" autocomplete="off">
+        <div id="ps-ing" class="sug"></div>
+        <button type="button" class="linkbtn" data-newmat="ing">＋ Crear material nuevo</button>
+      </div>
+
+      <div class="row2">
+        <div><span class="lbl">Cantidad</span><input id="ingQ" class="inp" type="number" step="any" min="0" inputmode="decimal" placeholder="0"></div>
+        <div id="wrapP"><span class="lbl">Precio unit. S/</span><input id="ingP" class="inp" type="number" step="any" min="0" inputmode="decimal" placeholder="0.00"></div>
+      </div>
+
+      <div id="wrapC">
+        <span class="lbl">Proveedor</span>
+        <div id="pvchip" class="pick-chip hidden">
+          <div class="pcL"><div class="pcn" id="pvn"></div><div class="pcs" id="pvs"></div></div>
+          <button type="button" class="chg" id="pvClr">Cambiar</button>
+        </div>
+        <div id="pvwrap">
+          <input id="pvi" class="inp" placeholder="Buscar por RUC o razón social…" autocomplete="off">
+          <div id="pvsug" class="sug"></div>
+          <button type="button" class="linkbtn" id="pvNew">＋ Nuevo proveedor</button>
+        </div>
+        <div class="row2">
+          <div><span class="lbl">Guía remisión</span><input id="ingGui" class="inp" placeholder="N°"></div>
+          <div><span class="lbl">Factura / Boleta</span><input id="ingFac" class="inp" placeholder="N°"></div>
+        </div>
+      </div>
+
+      <div id="wrapD" class="hidden">
+        <span class="lbl">Piso / frente de origen</span><select id="devPiso" class="inp"></select>
+        <span class="lbl">Partida (opcional)</span><input id="devPart" class="inp" list="dlPartidas" placeholder="Ej. Encofrado y desencofrado">
+      </div>
+
+      <div id="wrapAlmIn"><span class="lbl">Almacén de destino</span><select id="ingAlm" class="inp"></select></div>
+
+      <div id="wrapT" class="hidden">
+        <div class="row2">
+          <div><span class="lbl">Almacén origen</span><select id="trfFrom" class="inp"></select></div>
+          <div><span class="lbl">Almacén destino</span><select id="trfTo" class="inp"></select></div>
+        </div>
+        <div class="note" id="trfDisp"></div>
+      </div>
+
+      <div class="row2">
+        <div><span class="lbl">Fecha</span><input id="ingF" class="inp" type="date"></div>
+        <div><span class="lbl">Observación</span><input id="ingObs" class="inp" placeholder="Opcional"></div>
+      </div>
+
+      <span class="lbl">&nbsp;</span>
+      <button class="btn green" id="btnIng">Registrar ingreso</button>
+    </div>
+  </section>
+
+  <section id="v-eo" class="view hidden">
+    <button class="backbtn" id="bkEo">‹ Volver</button>
+    <div class="vtitle">Préstamos y transferencias entre obras</div>
+    <div id="eoNone" class="empty hidden">Necesitas al menos dos obras para prestar o transferir saldos. Crea otra en «Más → Obras / proyectos».</div>
+    <div class="card" id="eoForm">
+      <div class="seg">
+        <button type="button" id="eoDirR" class="on">Recibir de otra obra</button>
+        <button type="button" id="eoDirS">Enviar a otra obra</button>
+      </div>
+      <div class="seg" id="eoModeSeg">
+        <button type="button" id="eoModeP" class="on">Préstamo</button>
+        <button type="button" id="eoModeT">Transferencia</button>
+      </div>
+      <div class="note" id="eoModeNote" style="margin:4px 0 6px"></div>
+      <div id="eoDevBox" class="eoinfo hidden"></div>
+
+      <span class="lbl" id="eoObraLbl">Obra que entrega</span><select id="eoObra" class="inp"></select>
+
+      <span class="lbl">Material</span>
+      <div id="pc-eo" class="pick-chip hidden">
+        <div class="pcL"><div class="pcn"><span class="cod" id="pcc-eo"></span><span id="pcn-eo"></span></div><div class="pcs" id="pcs-eo"></div></div>
+        <button type="button" class="chg" id="eoClr">Cambiar</button>
+      </div>
+      <div id="pw-eo">
+        <input id="pi-eo" class="inp" placeholder="Buscar material con saldo…" autocomplete="off">
+        <div id="ps-eo" class="sug"></div>
+      </div>
+
+      <div class="row2">
+        <div><span class="lbl">Sale del almacén</span><select id="eoAlmS" class="inp"></select></div>
+        <div><span class="lbl">Entra al almacén</span><select id="eoAlmD" class="inp"></select></div>
+      </div>
+      <div class="row2">
+        <div><span class="lbl">Cantidad</span><input id="eoQ" class="inp" type="number" step="any" min="0" inputmode="decimal" placeholder="0"></div>
+        <div><span class="lbl">Fecha</span><input id="eoF" class="inp" type="date"></div>
+      </div>
+      <span class="lbl">Observación</span><input id="eoObs" class="inp" placeholder="Opcional (autorizó, motivo…)">
+      <div class="note" id="eoHint"></div>
+      <span class="lbl">&nbsp;</span>
+      <button class="btn green" id="btnEo">Registrar préstamo</button>
+    </div>
+
+    <div class="vtitle" style="margin-top:14px">Préstamos pendientes de esta obra</div>
+    <div id="eoLoans"></div>
+    <button class="btn ghost sm" id="bGoRep">Ver saldos de todas las obras</button>
+  </section>
+
+  <section id="v-rep" class="view hidden">
+    <button class="backbtn" id="bkRep">‹ Volver</button>
+    <div class="vtitle">Saldos entre obras</div>
+    <div class="note" style="margin:0 0 8px">Antes de comprar, revisa si otra obra tiene sobrante que pueda prestarte o transferirte.</div>
+    <div class="searchwrap"><input id="qr" class="inp" placeholder="Buscar por código o nombre…" autocomplete="off"></div>
+    <label class="chkrow" style="margin:0 0 10px"><input type="checkbox" id="repNeed"> Solo lo que esta obra no tiene y otra sí</label>
+    <div id="repTable"></div>
+    <button class="btn ghost sm" id="bCsvRep">Saldos entre obras (CSV)</button>
+    <div class="vtitle" style="margin-top:14px">Préstamos pendientes — todas las obras</div>
+    <div id="repLoans"></div>
+  </section>
+
+  <section id="v-sal" class="view hidden">
+    <div class="vtitle">Salida de almacén (vale)</div>
+    <div class="card">
+      <span class="lbl">Material</span>
+      <div id="pc-sal" class="pick-chip hidden">
+        <div class="pcL"><div class="pcn"><span class="cod" id="pcc-sal"></span><span id="pcn-sal"></span></div><div class="pcs" id="pcs-sal"></div></div>
+        <button type="button" class="chg" data-clr="sal">Cambiar</button>
+      </div>
+      <div id="pw-sal">
+        <input id="pi-sal" class="inp" placeholder="Buscar material…" autocomplete="off">
+        <div id="ps-sal" class="sug"></div>
+      </div>
+
+      <div id="wrapAlmOut"><span class="lbl">Sale del almacén</span><select id="salAlm" class="inp"></select></div>
+
+      <div class="row2">
+        <div><span class="lbl">Cantidad</span><input id="salQ" class="inp" type="number" step="any" min="0" inputmode="decimal" placeholder="0"></div>
+        <div><span class="lbl">Fecha</span><input id="salF" class="inp" type="date"></div>
+      </div>
+
+      <span class="lbl">Destino (piso / frente)</span><select id="salPiso" class="inp"></select>
+      <span class="lbl">Partida</span><input id="salPart" class="inp" list="dlPartidas" placeholder="Ej. Concreto f'c=210">
+      <span class="lbl">Solicitante / maestro</span><input id="salSol" class="inp" placeholder="Nombre">
+      <span class="lbl">Observación</span><input id="salObs" class="inp" placeholder="Opcional">
+
+      <span class="lbl">&nbsp;</span>
+      <button class="btn red" id="btnSal">Registrar salida</button>
+    </div>
+  </section>
+
+  <section id="v-kar" class="view hidden">
+    <div class="vtitle">Kardex</div>
+    <div id="pc-kar" class="pick-chip hidden">
+      <div class="pcL"><div class="pcn"><span class="cod" id="pcc-kar"></span><span id="pcn-kar"></span></div><div class="pcs" id="pcs-kar"></div></div>
+      <button type="button" class="chg" data-clr="kar">Cambiar</button>
+    </div>
+    <div id="pw-kar">
+      <input id="pi-kar" class="inp" placeholder="Buscar material para ver su kardex…" autocomplete="off">
+      <div id="ps-kar" class="sug"></div>
+    </div>
+
+    <div id="karHead" class="hidden">
+      <div class="khead">
+        <div class="kpi"><div class="kv" id="kQ">0</div><div class="kl">Stock total</div></div>
+        <div class="kpi"><div class="kv" id="kAvg">—</div><div class="kl">C. prom S/</div></div>
+        <div class="kpi"><div class="kv" id="kVal">—</div><div class="kl">Valorizado</div></div>
+      </div>
+      <div class="almchips" id="kAlms"></div>
+      <div class="row2" style="margin:6px 0 12px">
+        <div><button class="btn ghost sm" id="bEditMat">Editar material</button></div>
+        <div><button class="btn ghost sm" id="bCsvKar">Kardex CSV</button></div>
+      </div>
+
+      <div class="vtitle">Historial de compras · precios</div>
+      <div class="almchips" id="phChips"></div>
+      <div id="phList"></div>
+      <button class="btn ghost sm hidden" id="bCsvPh" style="margin:2px 0 12px">Precios CSV</button>
+    </div>
+
+    <div id="karTitle" class="vtitle" style="margin-top:6px">Últimos movimientos</div>
+    <div id="karList"></div>
+    <div id="karEmpty" class="empty hidden">Sin movimientos todavía. Registra un ingreso para comenzar.</div>
+  </section>
+
+  <section id="v-oc" class="view hidden">
+    <div class="vtitle">Compras · cotizaciones y OC</div>
+    <div class="searchwrap"><input id="qo" class="inp" placeholder="Buscar por N°, proveedor o material…" autocomplete="off"></div>
+    <div id="ocList"></div>
+    <div id="ocEmpty" class="empty hidden">Sin solicitudes de compra. Crea una, agrega ítems y compara cotizaciones de tus proveedores antes de emitir la OC.</div>
+    <button class="btn dark sm" id="bNewOC">＋ Nueva solicitud de cotización</button>
+    <button class="btn ghost sm" id="bCsvOC">Resumen de OC (CSV)</button>
+  </section>
+
+  <section id="v-ocd" class="view hidden">
+    <button class="backbtn" id="bkOcd">‹ Compras</button>
+    <div id="ocdHead" class="card"></div>
+    <div id="ocdCfg" class="card hidden">
+      <div class="row2">
+        <div><span class="lbl">Fecha</span><input id="ocF" class="inp" type="date"></div>
+        <div><span class="lbl">Almacén destino</span><select id="ocAlm" class="inp"></select></div>
+      </div>
+      <span class="lbl">Condiciones (pago / entrega)</span><input id="ocCond" class="inp" placeholder="Ej. Contado · puesto en obra">
+      <span class="lbl">Observación</span><input id="ocObs" class="inp" placeholder="Opcional">
+    </div>
+
+    <div class="vtitle">Ítems solicitados</div>
+    <div class="card">
+      <div id="ocdItems"></div>
+      <div id="ocdAddItem">
+        <span class="lbl">Agregar material</span>
+        <div id="pc-oc" class="pick-chip hidden">
+          <div class="pcL"><div class="pcn"><span class="cod" id="pcc-oc"></span><span id="pcn-oc"></span></div><div class="pcs" id="pcs-oc"></div></div>
+          <button type="button" class="chg" data-clr="oc">Cambiar</button>
+        </div>
+        <div id="pw-oc">
+          <input id="pi-oc" class="inp" placeholder="Buscar material…" autocomplete="off">
+          <div id="ps-oc" class="sug"></div>
+          <button type="button" class="linkbtn" data-newmat="oc">＋ Crear material nuevo</button>
+        </div>
+        <div class="row2" style="margin-top:8px">
+          <div><input id="ocQ" class="inp" type="number" step="any" min="0" inputmode="decimal" placeholder="Cantidad"></div>
+          <div><button class="btn dark sm" id="bOcAddItem" style="margin:0">＋ Agregar ítem</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vtitle">Cotizaciones por proveedor</div>
+    <div id="ocdCots"></div>
+    <button class="btn ghost sm hidden" id="bOcAddCot">＋ Agregar proveedor cotizante</button>
+
+    <div class="vtitle" style="margin-top:14px">Cuadro comparativo</div>
+    <div id="ocdComp"></div>
+
+    <div id="ocdRec"></div>
+    <div id="ocdActions" style="margin-top:10px"></div>
+  </section>
+
+  <section id="v-prov" class="view hidden">
+    <button class="backbtn" id="bkProv">‹ Volver</button>
+    <div class="vtitle">Directorio de proveedores</div>
+    <div class="searchwrap"><input id="qp" class="inp" placeholder="Buscar por RUC, nombre o ciudad…" autocomplete="off"></div>
+    <div id="provList"></div>
+    <div id="provEmpty" class="empty hidden">Sin proveedores registrados. Se crean aquí o al registrar una compra.</div>
+    <button class="btn dark sm" id="bNewProv">＋ Nuevo proveedor</button>
+    <button class="btn ghost sm" id="bCsvProv">Directorio CSV</button>
+  </section>
+
+  <section id="v-provd" class="view hidden">
+    <button class="backbtn" id="bkProvd">‹ Proveedores</button>
+    <div id="pdCard" class="card"></div>
+    <div class="rowa" id="pdLinks" style="margin-bottom:12px"></div>
+    <div class="row2" style="margin-bottom:12px">
+      <div><button class="btn ghost sm" id="bEditProv">Editar</button></div>
+      <div><button class="btn ghost sm" id="bDelProv">Eliminar</button></div>
+    </div>
+    <div class="vtitle">Materiales y último precio</div>
+    <div id="pdMats"></div>
+    <div class="vtitle" style="margin-top:14px">Compras registradas</div>
+    <div id="pdBuys"></div>
+  </section>
+
+  <section id="v-mas" class="view hidden">
+    <div class="vtitle">Obras / proyectos</div>
+    <div class="card">
+      <span class="lbl">Obra activa</span>
+      <select id="projSel" class="inp"></select>
+      <div class="note" id="projInfo"></div>
+      <span class="lbl">&nbsp;</span>
+      <button class="btn dark sm" id="bNewProj">＋ Nueva obra</button>
+      <button class="btn ghost sm" id="bDelProj">Eliminar obra activa…</button>
+      <div class="note">Cada obra tiene su propio catálogo, proveedores, almacenes, kardex y compras. Sin límite de obras.</div>
+    </div>
+
+    <div class="vtitle">Entre obras</div>
+    <div class="card">
+      <button class="btn dark sm" id="bGoEo">Préstamo / transferencia entre obras</button>
+      <button class="btn ghost sm" id="bGoRep2">Saldos de todas las obras</button>
+      <div class="note" id="eoCnt"></div>
+    </div>
+
+    <div class="vtitle">Proveedores</div>
+    <div class="card">
+      <button class="btn dark sm" id="bGoProv">Directorio de proveedores</button>
+      <div class="note" id="provCnt"></div>
+    </div>
+
+    <div class="vtitle">Almacenes y responsables</div>
+    <div class="card">
+      <div id="almList"></div>
+      <button class="btn ghost sm" id="bAddAlm" style="margin-top:10px">＋ Añadir almacén</button>
+      <div class="note">Cada almacén puede tener su almacenero/a; firma el vale según el almacén de salida. Los traslados se registran en «Ingreso».</div>
+    </div>
+
+    <div class="vtitle">Datos de la obra</div>
+    <div class="card">
+      <span class="lbl">Nombre de la obra</span><input id="cObra" class="inp" placeholder="Edificio multifamiliar 11 pisos">
+      <span class="lbl">Empresa / propietario</span><input id="cEmp" class="inp" placeholder="Opcional">
+      <span class="lbl">Almacenero/a general</span><input id="cAlm" class="inp" placeholder="Nombre y apellido">
+      <span class="lbl">N° de pisos (para destinos de salida)</span><input id="cPisos" class="inp" type="number" min="1" max="200" step="1" inputmode="numeric" placeholder="11">
+      <span class="lbl">&nbsp;</span>
+      <button class="btn dark sm" id="bCfg">Guardar datos</button>
+    </div>
+
+    <div class="vtitle">Marca profesional</div>
+    <div class="card">
+      <span class="lbl">Nombre</span><input id="bNom" class="inp" placeholder="Ing. …">
+      <div class="row2">
+        <div><span class="lbl">CIP</span><input id="bCip" class="inp" placeholder="130180"></div>
+        <div><span class="lbl">Celular</span><input id="bCel" class="inp" inputmode="tel" placeholder="926270200"></div>
+      </div>
+      <span class="lbl">&nbsp;</span>
+      <button class="btn dark sm" id="bBrand">Guardar marca</button>
+      <div class="note">Aparece en la barra superior, vales y órdenes de compra impresas.</div>
+    </div>
+
+    <div class="vtitle">Reportes</div>
+    <div class="card">
+      <button class="btn ghost sm" id="bCsvStock">Stock valorizado por almacén (CSV)</button>
+      <button class="btn ghost sm" id="bCsvMovs">Todos los movimientos (CSV)</button>
+      <div class="note">CSV separado por «;» y decimales con coma, listo para Excel en español.</div>
+    </div>
+
+    <div class="vtitle">Respaldo de datos</div>
+    <div class="card">
+      <button class="btn amber sm" id="bBackupAll">Respaldo completo — todas las obras (JSON)</button>
+      <button class="btn ghost sm" id="bBackup">Respaldo solo de esta obra (JSON)</button>
+      <button class="btn ghost sm hidden" id="bShare">Compartir respaldo completo (WhatsApp, correo…)</button>
+      <button class="btn ghost sm" id="bRestore">Importar respaldo…</button>
+      <input type="file" id="fRestore" accept=".json,application/json" class="hidden">
+      <div class="note" id="bkInfo"></div>
+      <div class="note">Sirve para pasar los datos a otro teléfono o recuperarlos. Acepta respaldos de las versiones 1 a 4. Importar nunca borra nada sin preguntarte.</div>
+    </div>
+
+    <div class="vtitle">Almacenamiento</div>
+    <div class="card">
+      <div class="note" id="stMode" style="margin-top:0"></div>
+      <div class="note" id="stQuota"></div>
+    </div>
+
+    <div class="vtitle">Catálogo</div>
+    <div class="card">
+      <button class="btn ghost sm" id="bSeed2">Cargar catálogo base (Cusco, 20 ítems)</button>
+      <div class="note" id="cnt"></div>
+    </div>
+
+    <div class="vtitle">Zona de riesgo</div>
+    <div class="card dangerbox">
+      <button class="btn ghost sm" id="bWipeMovs">Vaciar movimientos y compras</button>
+      <button class="btn ghost sm" id="bWipeAll">Borrar todo el contenido de esta obra</button>
+    </div>
+    <div class="note" id="masCredit" style="text-align:center;margin-bottom:8px"></div>
+  </section>
+
+</main>
+
+<div id="mmodal" class="modal np hidden">
+  <div class="mbox">
+    <h3 id="mTitle">Nuevo material</h3>
+    <span class="lbl">Código</span><input id="mCod" class="inp" placeholder="Ej. CEM-001" autocomplete="off">
+    <span class="lbl">Descripción</span><input id="mNom" class="inp" placeholder="Ej. Cemento Yura IP x 42.5 kg">
+    <div class="row2">
+      <div><span class="lbl">Unidad</span><select id="mUnd" class="inp"></select></div>
+      <div><span class="lbl">Stock mínimo</span><input id="mMin" class="inp" type="number" step="any" min="0" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <span class="lbl">&nbsp;</span>
+    <button class="btn dark" id="mSave">Guardar material</button>
+    <button class="btn ghost sm" id="mDel" style="display:none">Eliminar material</button>
+    <button class="btn ghost sm" id="mCancel">Cancelar</button>
+  </div>
+</div>
+
+<div id="pmodal" class="modal np hidden">
+  <div class="mbox">
+    <h3 id="pTitle">Nuevo proveedor</h3>
+    <span class="lbl">Razón social *</span><input id="pNom" class="inp" placeholder="Ej. Ferretería El Sol S.A.C.">
+    <div class="row2">
+      <div><span class="lbl">RUC</span><input id="pRuc" class="inp" inputmode="numeric" placeholder="11 dígitos"></div>
+      <div><span class="lbl">Teléfono</span><input id="pTel" class="inp" inputmode="tel" placeholder="9########"></div>
+    </div>
+    <span class="lbl">Contacto / vendedor</span><input id="pCon" class="inp" placeholder="Nombre">
+    <span class="lbl">Dirección</span><input id="pDir" class="inp" placeholder="Av. / Jr. / N°">
+    <span class="lbl">Ciudad / ubicación</span><input id="pCiu" class="inp" placeholder="Ej. Cusco — San Sebastián">
+    <span class="lbl">Observación</span><input id="pObs" class="inp" placeholder="Rubro, condiciones de pago, etc.">
+    <span class="lbl">&nbsp;</span>
+    <button class="btn dark" id="pSave">Guardar proveedor</button>
+    <button class="btn ghost sm" id="pCancel">Cancelar</button>
+  </div>
+</div>
+
+<div id="amodal" class="modal np hidden">
+  <div class="mbox">
+    <h3 id="aTitle">Nuevo almacén</h3>
+    <span class="lbl">Nombre del almacén *</span><input id="aNom" class="inp" placeholder="Ej. Almacén principal">
+    <span class="lbl">Almacenero/a responsable</span><input id="aResp" class="inp" placeholder="Nombre y apellido (opcional)">
+    <span class="lbl">&nbsp;</span>
+    <button class="btn dark" id="aSave">Guardar almacén</button>
+    <button class="btn ghost sm" id="aCancel">Cancelar</button>
+  </div>
+</div>
+
+<div id="wmodal" class="modal np hidden">
+  <div class="mbox">
+    <h3>Nueva obra</h3>
+    <span class="lbl">Nombre de la obra *</span><input id="wNom" class="inp" placeholder="Ej. Vivienda 5 pisos — San Jerónimo">
+    <span class="lbl">N° de pisos</span><input id="wPisos" class="inp" type="number" min="1" max="200" step="1" inputmode="numeric" value="11">
+    <label class="chkrow"><input type="checkbox" id="wCopyMat" checked> Copiar catálogo de materiales de la obra actual</label>
+    <label class="chkrow"><input type="checkbox" id="wCopyProv" checked> Copiar directorio de proveedores</label>
+    <label class="chkrow"><input type="checkbox" id="wCopyAlm"> Copiar almacenes (sin stock)</label>
+    <div class="note">Se copian solo las fichas; el stock, kardex y compras empiezan en cero.</div>
+    <span class="lbl">&nbsp;</span>
+    <button class="btn dark" id="wSave">Crear y abrir obra</button>
+    <button class="btn ghost sm" id="wCancel">Cancelar</button>
+  </div>
+</div>
+
+<div id="rmodal" class="modal np hidden">
+  <div class="mbox">
+    <h3>Importar respaldo</h3>
+    <div class="note" id="rInfo" style="margin:4px 0 10px"></div>
+    <div id="rBtns"></div>
+    <button class="btn ghost sm" id="rCancel">Cancelar</button>
+  </div>
+</div>
+
+<div id="pselModal" class="modal np hidden">
+  <div class="mbox">
+    <h3>Agregar proveedor cotizante</h3>
+    <span class="lbl">Buscar</span><input id="psq" class="inp" placeholder="RUC o razón social…" autocomplete="off">
+    <div id="pslist" class="sug"></div>
+    <button class="btn ghost sm" id="psNew">＋ Nuevo proveedor</button>
+    <button class="btn ghost sm" id="psCancel">Cancelar</button>
+  </div>
+</div>
+
+<div id="recModal" class="modal np hidden">
+  <div class="mbox">
+    <h3>Recepción de mercadería</h3>
+    <div class="note" id="recInfo" style="margin:2px 0 6px"></div>
+    <div class="row2">
+      <div><span class="lbl">Fecha</span><input id="recF" class="inp" type="date"></div>
+      <div><span class="lbl">Almacén destino</span><select id="recAlm" class="inp"></select></div>
+    </div>
+    <div class="row2">
+      <div><span class="lbl">Guía remisión</span><input id="recGui" class="inp" placeholder="N°"></div>
+      <div><span class="lbl">Factura / Boleta</span><input id="recFac" class="inp" placeholder="N°"></div>
+    </div>
+    <span class="lbl">Cantidades recibidas</span>
+    <div id="recItems"></div>
+    <span class="lbl">&nbsp;</span>
+    <button class="btn green" id="recSave">Registrar recepción</button>
+    <button class="btn ghost sm" id="recCancel">Cancelar</button>
+  </div>
+</div>
+
+<div id="docModal" class="modal hidden">
+  <div class="sheet" id="docBody"></div>
+  <div class="vm-actions">
+    <button class="btn amber" id="vPrint">Imprimir / guardar PDF</button>
+    <button class="btn ghost sm" id="vClose">Cerrar</button>
+  </div>
+</div>
+
+<div id="toast" class="np hidden"></div>
+
+<nav id="tabs" class="np">
+  <button data-v="stock" class="on"><span class="ic">▦</span>Stock</button>
+  <button data-v="ing"><span class="ic">⬇</span>Ingreso</button>
+  <button data-v="sal"><span class="ic">⬆</span>Salida</button>
+  <button data-v="kar"><span class="ic">≣</span>Kardex</button>
+  <button data-v="oc"><span class="ic">⚖</span>Compras</button>
+  <button data-v="mas"><span class="ic">⚙</span>Más</button>
+</nav>
+
+<datalist id="dlPartidas">
+  <option value="Concreto f'c=210"></option>
+  <option value="Concreto f'c=175"></option>
+  <option value="Encofrado y desencofrado"></option>
+  <option value="Acero de refuerzo"></option>
+  <option value="Muros de albañilería"></option>
+  <option value="Tarrajeo y derrames"></option>
+  <option value="Contrapiso"></option>
+  <option value="Cielorraso"></option>
+  <option value="Instalaciones sanitarias"></option>
+  <option value="Instalaciones eléctricas"></option>
+  <option value="Piso y enchape"></option>
+  <option value="Pintura"></option>
+  <option value="Carpintería de madera"></option>
+  <option value="Carpintería metálica"></option>
+  <option value="Drywall"></option>
+  <option value="Impermeabilización"></option>
+  <option value="Limpieza de obra"></option>
+</datalist>
+
+<script>
+/* Control de Almacén de Obra v5 — ES5, sin dependencias.
+   v3: órdenes de compra con cuadro comparativo de cotizaciones, recepción parcial
+   que genera NEA automáticos, y almacenero/a editable general y por almacén.
+   v4: guardado en IndexedDB (sin el tope de ~5 MB de localStorage), varias obras,
+   listas paginadas, pisos configurables, respaldo completo y aviso de respaldo.
+   v5: préstamos, devoluciones y transferencias entre obras (salida 'E' en la obra
+   que entrega + ingreso 'R' en la que recibe, al costo promedio de origen, guardados
+   juntos), avisos de saldo en otras obras y reporte de saldos entre obras.
+   Migra datos de v1, v2 y v3 (sin borrar los originales). */
+(function(){
+'use strict';
+
+var LS_LEGACY = ['almacen_obra_v3','almacen_obra_v2','almacen_obra_v1'];
+var LS_PREFIX = 'almacen_obra_v4_';
+var IDB_NAME  = 'almacen_obra';
+var IDB_STORE = 'kv';
+var META_KEY  = 'meta';
+var BK_DAYS   = 7;
+var UNIDADES = ['und','bol','m³','m²','m','kg','var','pza','p2','gal','l','rll','cja','jgo','mll','glb'];
+function pisosList(n){
+  var a = ['Sótano','Cimentación'];
+  for (var i=1;i<=n;i++){ a.push('Piso '+i); }
+  a.push('Azotea'); a.push('Áreas comunes'); a.push('Fachada / exteriores'); a.push('Otro');
+  return a;
+}
+function clampPisos(v){
+  var n=parseInt(v,10);
+  if(isNaN(n) || n<1){ n=11; }
+  if(n>200){ n=200; }
+  return n;
+}
+var BRAND_DEF = { nom:'Ing. Américo', cip:'130180', cel:'926270200' };
+var SEED = [
+  ['CEM-001','Cemento Yura IP x 42.5 kg','bol',20],
+  ['AGR-001','Arena gruesa','m³',3],
+  ['AGR-002','Arena fina','m³',2],
+  ['AGR-003','Piedra chancada 1/2"','m³',3],
+  ['ACE-001','Fierro corrugado 3/8" x 9 m','var',50],
+  ['ACE-002','Fierro corrugado 1/2" x 9 m','var',50],
+  ['ACE-003','Fierro corrugado 5/8" x 9 m','var',30],
+  ['ACE-004','Alambre negro N° 16','kg',20],
+  ['ACE-005','Alambre negro N° 8','kg',20],
+  ['ACE-006','Clavos para madera 3"','kg',10],
+  ['LAD-001','Ladrillo King Kong 18 huecos','und',500],
+  ['LAD-002','Ladrillo pandereta','und',300],
+  ['LAD-003','Ladrillo de techo h=15','und',200],
+  ['MAD-001','Madera tornillo p/ encofrado','p2',100],
+  ['TUB-001','Tubo PVC SAL 4" x 3 m','und',5],
+  ['TUB-002','Tubo PVC agua 1/2" C-10 x 5 m','und',10],
+  ['ELE-001','Tubo PVC SEL 3/4" x 3 m','und',20],
+  ['ELE-002','Cable THW 2.5 mm² (rollo 100 m)','rll',2],
+  ['PIN-001','Pintura látex blanco','gal',5],
+  ['ADT-001','Aditivo plastificante','gal',2]
+];
+var EPS = 0.000001;
+
+var DB = null;
+var META = null;
+var CUR = null;
+var ST = { mode:'none', db:null };
+var persist = false;
+var saveErrShown = false;
+var STATE = null;
+var LIM0 = { stock:200, kar:50, oc:60, prov:100, pd:40, 'sug-ing':8, 'sug-sal':8, 'sug-kar':8, 'sug-oc':8, pv:8, psel:10, 'sug-eo':8, rep:100 };
+var OTHERS = {};
+var othersTok = 0;
+var EO = { dir:'R', mode:'P', other:null, mid:null, ref:null };
+var eoBackTo = 'ing';
+var LIM = {};
+var pendingRestore = null;
+var PICK = {ing:null, sal:null, kar:null, oc:null};
+var PROV_PICK = null;
+var PROV_SEL = null;
+var OC_SEL = null;
+var ingTipo = 'C';
+var editingMatId = null;
+var editingProvId = null;
+var editingAlmId = null;
+var pendingPickTarget = null;
+var provCreateTarget = null;
+var provBackTo = 'mas';
+var toastTimer = null;
+
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  s = (s===undefined || s===null) ? '' : ''+s;
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function trim(s){ return (''+(s===undefined||s===null?'':s)).replace(/^\s+|\s+$/g,''); }
+function pad(n,w){ n=''+n; while(n.length<w){ n='0'+n; } return n; }
+function todayISO(){
+  var d=new Date();
+  return d.getFullYear()+'-'+pad(d.getMonth()+1,2)+'-'+pad(d.getDate(),2);
+}
+function dmy(iso){
+  if(!iso){ return ''; }
+  var p=(''+iso).split('-');
+  if(p.length<3){ return iso; }
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+function num(n,d){
+  if(typeof n!=='number' || isNaN(n)){ n=0; }
+  var s=n.toFixed(d);
+  var neg = s.charAt(0)==='-';
+  if(neg){ s=s.substring(1); }
+  var parts=s.split('.');
+  parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return (neg?'-':'')+parts.join('.');
+}
+function qty(n){
+  if(typeof n!=='number' || isNaN(n)){ n=0; }
+  n = Math.round(n*10000)/10000;
+  if(n === Math.round(n)){ return num(n,0); }
+  return num(n,2);
+}
+function money(n){ return 'S/ '+num(n,2); }
+function parseNum(v){
+  v=(''+v).replace(',','.');
+  var n=parseFloat(v);
+  return isNaN(n)?0:n;
+}
+function genId(p){ return (p||'m')+(new Date().getTime())+Math.floor(Math.random()*1000); }
+function digits(s){ return (''+(s||'')).replace(/[^0-9]/g,''); }
+function toast(msg, ms){
+  var t=$('toast');
+  t.innerHTML=msg;
+  t.className='np';
+  if(toastTimer){ clearTimeout(toastTimer); }
+  toastTimer=setTimeout(function(){ t.className='np hidden'; }, ms||2400);
+}
+
+function findMat(id){
+  if(STATE && STATE.mi && STATE.mi.hasOwnProperty(id)){ return STATE.mi[id]; }
+  for(var i=0;i<DB.mats.length;i++){ if(DB.mats[i].id===id){ return DB.mats[i]; } }
+  return null;
+}
+function findProv(id){
+  if(STATE && STATE.pi && STATE.pi.hasOwnProperty(id)){ return STATE.pi[id]; }
+  for(var i=0;i<DB.provs.length;i++){ if(DB.provs[i].id===id){ return DB.provs[i]; } }
+  return null;
+}
+function findAlm(id){
+  if(STATE && STATE.ai && STATE.ai.hasOwnProperty(id)){ return STATE.ai[id]; }
+  for(var i=0;i<DB.alms.length;i++){ if(DB.alms[i].id===id){ return DB.alms[i]; } }
+  return null;
+}
+function findOC(id){
+  if(STATE && STATE.oi && STATE.oi.hasOwnProperty(id)){ return STATE.oi[id]; }
+  for(var i=0;i<DB.ocs.length;i++){ if(DB.ocs[i].id===id){ return DB.ocs[i]; } }
+  return null;
+}
+function almName(id){
+  var a=findAlm(id);
+  return a? a.nom : '(almacén)';
+}
+function defaultAlmId(){ return DB.alms.length? DB.alms[0].id : null; }
+function matHasMovs(id){
+  for(var i=0;i<DB.movs.length;i++){ if(DB.movs[i].mid===id){ return true; } }
+  return false;
+}
+function matInOCs(id){
+  for(var i=0;i<DB.ocs.length;i++){
+    var its=DB.ocs[i].items;
+    for(var j=0;j<its.length;j++){ if(its[j].mid===id){ return true; } }
+  }
+  return false;
+}
+function provHasMovs(id){
+  for(var i=0;i<DB.movs.length;i++){ if(DB.movs[i].pid===id){ return true; } }
+  for(var k=0;k<DB.ocs.length;k++){
+    var cs=DB.ocs[k].cots;
+    for(var j=0;j<cs.length;j++){ if(cs[j].pid===id){ return true; } }
+  }
+  return false;
+}
+function almHasMovs(id){
+  for(var i=0;i<DB.movs.length;i++){
+    if(DB.movs[i].alm===id || DB.movs[i].almTo===id){ return true; }
+  }
+  return false;
+}
+function provName(m){
+  if(m.pid){ var p=findProv(m.pid); if(p){ return p.nom; } }
+  return m.prov || '';
+}
+
+function canStore(){
+  try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; }
+  catch(e){ return false; }
+}
+function defaultDB(){
+  return {
+    obra:'', empresa:'', encargado:'',
+    brand:{ nom:BRAND_DEF.nom, cip:BRAND_DEF.cip, cel:BRAND_DEF.cel },
+    mats:[], provs:[], alms:[{id:genId('a'),nom:'Almacén principal',resp:''}],
+    movs:[], ocs:[], seq:{I:0,S:0,D:0,T:0,Q:0,O:0,E:0,R:0}, pisos:11
+  };
+}
+function migrate(o){
+  if(!o || typeof o!=='object'){ return defaultDB(); }
+  if(!o.mats){ o.mats=[]; }
+  if(!o.movs){ o.movs=[]; }
+  if(!o.provs){ o.provs=[]; }
+  if(!o.ocs){ o.ocs=[]; }
+  if(!o.alms || !o.alms.length){ o.alms=[{id:genId('a'),nom:'Almacén principal',resp:''}]; }
+  var i;
+  for(i=0;i<o.alms.length;i++){ if(o.alms[i].resp===undefined){ o.alms[i].resp=''; } }
+  if(o.encargado===undefined){ o.encargado = (o.alm && typeof o.alm==='string') ? o.alm : ''; }
+  if(!o.brand){ o.brand={ nom:BRAND_DEF.nom, cip:BRAND_DEF.cip, cel:BRAND_DEF.cel }; }
+  if(!o.seq){ o.seq={I:0,S:0,D:0,T:0,Q:0,O:0}; }
+  if(o.seq.T===undefined){ o.seq.T=0; }
+  if(o.seq.Q===undefined){ o.seq.Q=0; }
+  if(o.seq.O===undefined){ o.seq.O=0; }
+  if(o.seq.E===undefined){ o.seq.E=0; }
+  if(o.seq.R===undefined){ o.seq.R=0; }
+  if(o.obra===undefined){ o.obra=''; }
+  if(o.empresa===undefined){ o.empresa=''; }
+  o.pisos = clampPisos(o.pisos===undefined? 11 : o.pisos);
+
+  var defAlm = o.alms[0].id;
+  var provMap = {};
+  var m, key;
+  for(i=0;i<o.provs.length;i++){
+    provMap[(''+o.provs[i].nom).toLowerCase().replace(/^\s+|\s+$/g,'')] = o.provs[i].id;
+  }
+  for(i=0;i<o.movs.length;i++){
+    m=o.movs[i];
+    if(!m.alm){ m.alm=defAlm; }
+    if(m.t==='I' && !m.pid && m.prov){
+      key=(''+m.prov).toLowerCase().replace(/^\s+|\s+$/g,'');
+      if(key){
+        if(!provMap[key]){
+          var np={id:genId('p'), nom:trim(m.prov), ruc:'', con:'', tel:'', dir:'', ciu:'', obs:''};
+          o.provs.push(np);
+          provMap[key]=np.id;
+        }
+        m.pid=provMap[key];
+      }
+    }
+    if(m.num && o.seq[m.t]!==undefined){
+      var nn=parseInt((''+m.num).split('-')[1],10);
+      if(!isNaN(nn) && nn>o.seq[m.t]){ o.seq[m.t]=nn; }
+    }
+  }
+  for(i=0;i<o.ocs.length;i++){
+    var oc=o.ocs[i];
+    if(!oc.items){ oc.items=[]; }
+    if(!oc.cots){ oc.cots=[]; }
+    if(!oc.alm){ oc.alm=defAlm; }
+    if(oc.estado===undefined){ oc.estado='COT'; }
+  }
+  return o;
+}
+
+/* ---------- almacenamiento: IndexedDB con respaldo en localStorage ---------- */
+function once(cb){
+  var done=false;
+  return function(a,b){ if(!done){ done=true; cb(a,b); } };
+}
+function idbOpen(cb){
+  cb=once(cb);
+  var idb=null;
+  try{ idb=window.indexedDB||window.webkitIndexedDB||window.mozIndexedDB||window.msIndexedDB; }catch(e){ idb=null; }
+  if(!idb){ cb(null); return; }
+  var req, late=false;
+  try{ req=idb.open(IDB_NAME,1); }catch(e2){ cb(null); return; }
+  var to=setTimeout(function(){ late=true; cb(null); },5000);
+  req.onupgradeneeded=function(){
+    var d=req.result;
+    if(!d.objectStoreNames.contains(IDB_STORE)){ d.createObjectStore(IDB_STORE); }
+  };
+  req.onsuccess=function(){
+    clearTimeout(to);
+    if(late){ try{ req.result.close(); }catch(e3){} return; }
+    cb(req.result);
+  };
+  req.onerror=function(){ clearTimeout(to); cb(null); };
+}
+function stGet(key, cb){
+  cb=once(cb);
+  if(ST.mode==='idb'){
+    try{
+      var rq=ST.db.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(key);
+      rq.onsuccess=function(){ cb(null, rq.result===undefined? null : rq.result); };
+      rq.onerror=function(){ cb(rq.error||'error', null); };
+    }catch(e){ cb(e, null); }
+  }else if(ST.mode==='ls'){
+    var raw=null, v=null;
+    try{ raw=localStorage.getItem(LS_PREFIX+key); }catch(e2){ cb(e2, null); return; }
+    if(raw){ try{ v=JSON.parse(raw); }catch(e3){ cb(e3, null); return; } }
+    cb(null, v);
+  }else{ cb(null, null); }
+}
+function stSet(key, val, cb){
+  cb=once(cb||function(){});
+  if(ST.mode==='idb'){
+    try{
+      var tx=ST.db.transaction(IDB_STORE,'readwrite');
+      tx.objectStore(IDB_STORE).put(val, key);
+      tx.oncomplete=function(){ cb(null); };
+      tx.onerror=function(){ cb(tx.error||'error'); };
+      tx.onabort=function(){ cb(tx.error||'abort'); };
+    }catch(e){ cb(e); }
+  }else if(ST.mode==='ls'){
+    try{ localStorage.setItem(LS_PREFIX+key, JSON.stringify(val)); cb(null); }
+    catch(e2){ cb(e2); }
+  }else{ cb(null); }
+}
+function stDel(key, cb){
+  cb=once(cb||function(){});
+  if(ST.mode==='idb'){
+    try{
+      var tx=ST.db.transaction(IDB_STORE,'readwrite');
+      tx.objectStore(IDB_STORE)['delete'](key);
+      tx.oncomplete=function(){ cb(null); };
+      tx.onerror=function(){ cb(tx.error||'error'); };
+      tx.onabort=function(){ cb(tx.error||'abort'); };
+    }catch(e){ cb(e); }
+  }else if(ST.mode==='ls'){
+    try{ localStorage.removeItem(LS_PREFIX+key); cb(null); }catch(e2){ cb(e2); }
+  }else{ cb(null); }
+}
+function pKey(id){ return 'proj:'+id; }
+function defaultMeta(){ return { ver:4, projects:[], active:null, lastBackup:'' }; }
+function projName(db){ return trim(db && db.obra) || 'Obra sin nombre'; }
+function findProj(id){
+  if(!META){ return null; }
+  for(var i=0;i<META.projects.length;i++){ if(META.projects[i].id===id){ return META.projects[i]; } }
+  return null;
+}
+function saveMeta(){
+  if(!persist){ return; }
+  stSet(META_KEY, META, function(err){ if(err){ saveErr(err); } });
+}
+function saveErr(err){
+  if(saveErrShown){ return; }
+  saveErrShown=true;
+  var quota = err && (err.name==='QuotaExceededError' || err.code===22);
+  alert(quota
+    ? 'No se pudo guardar: el teléfono no tiene espacio libre para el navegador. Descarga un respaldo completo y libera espacio.'
+    : 'No se pudo guardar el último cambio. Descarga un respaldo completo en «Más» por seguridad.');
+  setTimeout(function(){ saveErrShown=false; }, 15000);
+}
+function readLegacy(){
+  for(var i=0;i<LS_LEGACY.length;i++){
+    var raw=null;
+    try{ raw=localStorage.getItem(LS_LEGACY[i]); }catch(e){ raw=null; }
+    if(raw){
+      try{ return JSON.parse(raw); }catch(e2){}
+    }
+  }
+  return null;
+}
+function resetUIState(){
+  STATE=null;
+  PROV_SEL=null; OC_SEL=null;
+  OTHERS={}; othersTok++;
+  EO={ dir:'R', mode:'P', other:null, mid:null, ref:null };
+  for(var k in LIM0){ if(LIM0.hasOwnProperty(k)){ LIM[k]=LIM0[k]; } }
+}
+function load(cb){
+  resetUIState();
+  idbOpen(function(db){
+    if(db){ ST.mode='idb'; ST.db=db; }
+    else if(canStore()){ ST.mode='ls'; }
+    else{ ST.mode='none'; }
+    persist = ST.mode!=='none';
+    if(!persist){
+      META=defaultMeta();
+      DB=defaultDB();
+      CUR=genId('w');
+      META.projects.push({id:CUR, nom:projName(DB)});
+      META.active=CUR;
+      $('persistWarn').className='np';
+      cb();
+      return;
+    }
+    if(navigator.storage && navigator.storage.persist){
+      try{ navigator.storage.persist(); }catch(e){}
+    }
+    stGet(META_KEY, function(err, meta){
+      if(err){
+        alert('No se pudieron leer los datos guardados. La app abrirá sin guardar para no sobrescribir nada; cierra y vuelve a abrir.');
+        ST.mode='none'; persist=false;
+        META=defaultMeta(); DB=defaultDB(); CUR=genId('w');
+        META.projects.push({id:CUR, nom:projName(DB)}); META.active=CUR;
+        $('persistWarn').className='np';
+        cb();
+        return;
+      }
+      if(meta && meta.projects && meta.projects.length){
+        META=meta;
+        if(!META.lastBackup){ META.lastBackup=''; }
+        var id = findProj(META.active)? META.active : META.projects[0].id;
+        openProject(id, cb);
+        return;
+      }
+      /* primera vez en v4: migrar datos de v1/v2/v3 sin borrarlos */
+      var legacy=readLegacy();
+      META=defaultMeta();
+      DB = legacy? migrate(legacy) : defaultDB();
+      CUR=genId('w');
+      META.projects.push({id:CUR, nom:projName(DB)});
+      META.active=CUR;
+      save(); saveMeta();
+      if(legacy){ toast('Datos de versión anterior migrados ✓',3200); }
+      cb();
+    });
+  });
+}
+function openProject(id, cb){
+  stGet(pKey(id), function(err, val){
+    if(err){ alert('No se pudo abrir la obra seleccionada.'); if(cb){ cb(); } return; }
+    resetUIState();
+    CUR=id;
+    DB = val? migrate(val) : defaultDB();
+    META.active=id;
+    if(!val){ save(); }
+    saveMeta();
+    if(cb){ cb(); }
+  });
+}
+function save(){
+  if(!persist || !CUR || !DB){ return; }
+  var pr=findProj(CUR), nm=projName(DB);
+  if(pr && pr.nom!==nm){ pr.nom=nm; saveMeta(); }
+  stSet(pKey(CUR), DB, function(err){ if(err){ saveErr(err); } });
+}
+
+function mapById(arr){
+  var o={};
+  for(var i=0;i<arr.length;i++){ o[arr[i].id]=arr[i]; }
+  return o;
+}
+function computeAll(db){
+  db=db||DB;
+  var g={}, a={}, rows=[], rec={}, ocr={}, ps={}, lp={};
+  function G(mid){ if(!g[mid]){ g[mid]={q:0,val:0}; } return g[mid]; }
+  function A(mid,alm){ var k=mid+'|'+alm; if(!a[k]){ a[k]={q:0,val:0}; } return a[k]; }
+  function clamp(s){ if(s.q>-EPS && s.q<EPS){ s.q=0; s.val=0; } }
+  for(var i=0;i<db.movs.length;i++){
+    var m=db.movs[i];
+    var gg=G(m.mid), ent=0, sal=0, avg=0, aa, ad;
+    if(m.t==='I' || m.t==='R'){
+      aa=A(m.mid,m.alm);
+      gg.val+=m.q*(m.p||0); gg.q+=m.q;
+      aa.val+=m.q*(m.p||0); aa.q+=m.q;
+      ent=m.q; clamp(aa);
+    }else if(m.t==='D'){
+      avg = gg.q>EPS ? gg.val/gg.q : 0;
+      aa=A(m.mid,m.alm);
+      gg.val+=m.q*avg; gg.q+=m.q;
+      aa.val+=m.q*avg; aa.q+=m.q;
+      ent=m.q; clamp(aa);
+    }else if(m.t==='T'){
+      avg = gg.q>EPS ? gg.val/gg.q : 0;
+      aa=A(m.mid,m.alm); ad=A(m.mid,m.almTo);
+      aa.q-=m.q; aa.val-=m.q*avg;
+      ad.q+=m.q; ad.val+=m.q*avg;
+      clamp(aa); clamp(ad);
+    }else{
+      avg = gg.q>EPS ? gg.val/gg.q : 0;
+      aa=A(m.mid,m.alm);
+      gg.q-=m.q; gg.val-=m.q*avg;
+      aa.q-=m.q; aa.val-=m.q*avg;
+      sal=m.q; clamp(aa);
+    }
+    clamp(gg);
+    if(m.t==='I'){
+      if(m.oc){ rec[m.oc+'|'+m.mid]=(rec[m.oc+'|'+m.mid]||0)+m.q; ocr[m.oc]=true; }
+      if(m.pid){
+        if(!ps[m.pid]){ ps[m.pid]={n:0,tot:0,last:''}; }
+        ps[m.pid].n++; ps[m.pid].tot+=m.q*(m.p||0); ps[m.pid].last=m.f;
+      }
+      lp[m.mid]=m.p||0;
+    }
+    rows.push({
+      id:m.id, mid:m.mid, t:m.t, f:m.f, num:m.num, ent:ent, sal:sal,
+      saldo:gg.q, avg:(gg.q>EPS?gg.val/gg.q:0), valSaldo:gg.val, m:m
+    });
+  }
+  return { g:g, a:a, rows:rows, rec:rec, ocr:ocr, ps:ps, lp:lp,
+    mi:mapById(db.mats), pi:mapById(db.provs), ai:mapById(db.alms), oi:mapById(db.ocs) };
+}
+function stockOf(mid){ var s=STATE.g[mid]; return s? s.q : 0; }
+function avgOf(mid){ var s=STATE.g[mid]; return (s && s.q>EPS)? s.val/s.q : 0; }
+function valOf(mid){ var s=STATE.g[mid]; return s? s.val : 0; }
+function stockAlm(mid,alm){ var s=STATE.a[mid+'|'+alm]; return s? s.q : 0; }
+function multiAlm(){ return DB.alms.length>1; }
+
+function movDetail(m, mat){
+  var d='';
+  if(m.t==='I'){
+    d = provName(m) || 'Compra';
+    if(m.ocn){ d+=' · '+m.ocn; }
+    if(m.gui){ d+=' · G/R '+m.gui; }
+    if(m.fac){ d+=' · Doc. '+m.fac; }
+    d+=' · C.U. S/ '+num(m.p||0,2);
+    if(multiAlm()){ d+=' · '+almName(m.alm); }
+  }else if(m.t==='D'){
+    d='Devolución';
+    if(m.piso){ d+=' de '+m.piso; }
+    if(m.part){ d+=' · '+m.part; }
+    if(multiAlm()){ d+=' · a '+almName(m.alm); }
+  }else if(m.t==='T'){
+    d='Traslado: '+almName(m.alm)+' → '+almName(m.almTo);
+  }else if(m.t==='E' || m.t==='R'){
+    d=eoKind(m.eo)+(m.t==='E'?' a ':' de ')+obraLabel(m.obra, m.obraNom);
+    if(m.numO){ d+=' ('+m.numO+')'; }
+    if(m.t==='R'){ d+=' · C.U. S/ '+num(m.p||0,2); }
+    if(multiAlm()){ d+=(m.t==='E'?' · de ':' · a ')+almName(m.alm); }
+  }else{
+    d = m.piso||'';
+    if(m.part){ d+=(d?' · ':'')+m.part; }
+    if(m.sol){ d+=(d?' · ':'')+m.sol; }
+    if(!d){ d='Salida a obra'; }
+    if(multiAlm()){ d+=' · de '+almName(m.alm); }
+  }
+  if(m.obs){ d+=' — '+m.obs; }
+  return d;
+}
+
+function priceHistory(mid){
+  var out=[], prev=null;
+  for(var i=0;i<DB.movs.length;i++){
+    var m=DB.movs[i];
+    if(m.t!=='I' || m.mid!==mid){ continue; }
+    var d=null;
+    if(prev!==null && prev>EPS){ d=((m.p||0)-prev)/prev*100; }
+    out.push({f:m.f, prov:provName(m), q:m.q, p:(m.p||0), delta:d});
+    prev=m.p||0;
+  }
+  return out;
+}
+function lastPaid(mid){
+  if(STATE && STATE.lp){ return STATE.lp.hasOwnProperty(mid)? STATE.lp[mid] : null; }
+  var h=priceHistory(mid);
+  return h.length? h[h.length-1].p : null;
+}
+function provStats(pid){
+  if(STATE && STATE.ps){ var c=STATE.ps[pid]; return c? {n:c.n, tot:c.tot, last:c.last} : {n:0, tot:0, last:''}; }
+  var n=0, tot=0, last='';
+  for(var i=0;i<DB.movs.length;i++){
+    var m=DB.movs[i];
+    if(m.t==='I' && m.pid===pid){ n++; tot+=m.q*(m.p||0); last=m.f; }
+  }
+  return {n:n, tot:tot, last:last};
+}
+function provMatSummary(pid){
+  var map={}, order=[];
+  for(var i=0;i<DB.movs.length;i++){
+    var m=DB.movs[i];
+    if(m.t!=='I' || m.pid!==pid){ continue; }
+    if(!map[m.mid]){ map[m.mid]={n:0,min:m.p||0,max:m.p||0,last:0,f:''}; order.push(m.mid); }
+    var e=map[m.mid];
+    e.n++; e.last=m.p||0; e.f=m.f;
+    if((m.p||0)<e.min){ e.min=m.p||0; }
+    if((m.p||0)>e.max){ e.max=m.p||0; }
+  }
+  var out=[];
+  for(var j=0;j<order.length;j++){
+    out.push({mat:findMat(order[j]), s:map[order[j]]});
+  }
+  return out;
+}
+
+function cotTotal(oc, cot){
+  var tot=0;
+  for(var i=0;i<oc.items.length;i++){
+    var it=oc.items[i];
+    var p=cot.pr? cot.pr[it.mid] : undefined;
+    if(p===undefined || p===null || p===''){ return {ok:false, total:0}; }
+    tot+=it.q*p;
+  }
+  return {ok:true, total:tot};
+}
+function bestCot(oc){
+  var best=null;
+  for(var i=0;i<oc.cots.length;i++){
+    var t=cotTotal(oc, oc.cots[i]);
+    if(t.ok && (best===null || t.total<best.total)){ best={idx:i, total:t.total, pid:oc.cots[i].pid}; }
+  }
+  return best;
+}
+function winCot(oc){
+  if(!oc.win){ return null; }
+  for(var i=0;i<oc.cots.length;i++){ if(oc.cots[i].pid===oc.win){ return oc.cots[i]; } }
+  return null;
+}
+function recOf(ocId, mid){
+  if(STATE && STATE.rec){ return STATE.rec[ocId+'|'+mid]||0; }
+  var s=0;
+  for(var i=0;i<DB.movs.length;i++){
+    var m=DB.movs[i];
+    if(m.t==='I' && m.oc===ocId && m.mid===mid){ s+=m.q; }
+  }
+  return s;
+}
+function ocHasRec(ocId){
+  if(STATE && STATE.ocr){ return !!STATE.ocr[ocId]; }
+  for(var i=0;i<DB.movs.length;i++){
+    if(DB.movs[i].oc===ocId){ return true; }
+  }
+  return false;
+}
+function ocEstadoInfo(oc){
+  if(oc.estado==='ANU'){ return {code:'ANU', label:'Anulada'}; }
+  if(oc.estado==='COT'){ return {code:'COT', label:'En cotización'}; }
+  var pendAll=0, recAny=false, i;
+  for(i=0;i<oc.items.length;i++){
+    var r=recOf(oc.id, oc.items[i].mid);
+    if(r>EPS){ recAny=true; }
+    var pend=oc.items[i].q - r;
+    if(pend>EPS){ pendAll+=pend; }
+  }
+  if(pendAll<=EPS && oc.items.length){ return {code:'REC', label:'Recibida'}; }
+  if(recAny){ return {code:'PAR', label:'Recepción parcial'}; }
+  return {code:'EMI', label:'OC emitida'};
+}
+function ocNumShow(oc){ return oc.numOC || oc.num; }
+function ocTotalAdj(oc){
+  var c=winCot(oc);
+  if(!c){ return 0; }
+  var t=cotTotal(oc,c);
+  return t.ok? t.total : 0;
+}
+
+function limStep(k){ return Math.max(LIM0[k]||20, 20); }
+function moreHTML(k, rest){
+  if(rest<=0){ return ''; }
+  return '<button type="button" class="morebtn" data-more="'+k+'">Mostrar '+Math.min(rest,limStep(k))+' más · quedan '+rest+'</button>';
+}
+function limReset(k){ LIM[k]=LIM0[k]; }
+function moreClick(k){
+  if(!LIM0.hasOwnProperty(k)){ return; }
+  LIM[k]=(LIM[k]||LIM0[k])+limStep(k);
+  if(k==='stock'){ renderStock(); }
+  else if(k==='kar'){ renderKardex(); }
+  else if(k==='oc'){ renderOCList(); }
+  else if(k==='prov'){ renderProvList(); }
+  else if(k==='pd'){ renderProvDetail(); }
+  else if(k==='pv'){ provSuggest(); }
+  else if(k==='psel'){ pselList(); }
+  else if(k==='sug-eo'){ eoSuggest(); }
+  else if(k==='rep'){ renderRep(); }
+  else if(k.indexOf('sug-')===0){ pickSuggest(k.substring(4)); }
+}
+
+function brandLine(){
+  var b=DB.brand||{}, parts=[];
+  if(b.nom){ parts.push(b.nom); }
+  if(b.cip){ parts.push('CIP '+b.cip); }
+  if(b.cel){ parts.push('Cel. '+b.cel); }
+  return parts.join(' · ');
+}
+function renderBrand(){
+  var bl=brandLine();
+  $('brandbar').innerHTML=esc(bl);
+  $('brandbar').className = bl? 'np' : 'np hidden';
+  $('stockCredit').innerHTML = bl? 'Sistema de control · '+esc(bl) : '';
+  $('masCredit').innerHTML = 'Control de Almacén de Obra v5.0'+(bl?(' · '+esc(bl)):'')+' · Ref. flujo S10 Almacenes';
+}
+
+function renderHeader(){
+  var totVal=0, low=0;
+  for(var i=0;i<DB.mats.length;i++){
+    var mt=DB.mats[i];
+    totVal+=valOf(mt.id);
+    if(mt.min>0 && stockOf(mt.id)<=mt.min){ low++; }
+  }
+  var multiP = META && META.projects.length>1;
+  $('hObra').innerHTML = esc(DB.obra || 'CONTROL DE ALMACÉN')+(multiP?('<span class="swi">⇄ '+META.projects.length+' obras</span>'):'');
+  $('hObra').className = multiP? 'h-obra sw' : 'h-obra';
+  $('hVal').innerHTML = money(totVal);
+  $('hItems').innerHTML = ''+DB.mats.length;
+  var hA=$('hAlert');
+  if(low>0){ hA.className=''; hA.innerHTML=low+' bajo mínimo'; }
+  else{ hA.className='hidden'; }
+}
+function stockAlmFilter(){
+  var v=$('stockAlmSel').value;
+  return v || 'ALL';
+}
+function renderStock(){
+  var wrap=$('stockAlmWrap');
+  if(multiAlm()){
+    var cur=$('stockAlmSel').value;
+    var html='<option value="ALL">Todos los almacenes</option>';
+    for(var k=0;k<DB.alms.length;k++){
+      html+='<option value="'+esc(DB.alms[k].id)+'">'+esc(DB.alms[k].nom)+'</option>';
+    }
+    $('stockAlmSel').innerHTML=html;
+    if(cur){ $('stockAlmSel').value=cur; }
+    if(!$('stockAlmSel').value){ $('stockAlmSel').value='ALL'; }
+    wrap.className='searchwrap';
+  }else{
+    wrap.className='searchwrap hidden';
+    $('stockAlmSel').innerHTML='<option value="ALL">Todos</option>';
+  }
+  var fAlm = multiAlm()? stockAlmFilter() : 'ALL';
+
+  var qstr=($('q').value||'').toLowerCase();
+  var list=DB.mats.slice(0);
+  list.sort(function(a,b){ return a.cod<b.cod?-1:(a.cod>b.cod?1:0); });
+  var out='', shown=0, rest=0;
+  for(var i=0;i<list.length;i++){
+    var mt=list[i];
+    var hay=(mt.cod+' '+mt.nom).toLowerCase();
+    if(qstr && hay.indexOf(qstr)===-1){ continue; }
+    if(shown>=LIM.stock){ rest++; continue; }
+    shown++;
+    var st = fAlm==='ALL' ? stockOf(mt.id) : stockAlm(mt.id,fAlm);
+    var pr = avgOf(mt.id);
+    var low = fAlm==='ALL' && mt.min>0 && st<=mt.min;
+    var sub = 'prom '+money(pr)+(mt.min>0?' · mín '+qty(mt.min):'');
+    if(fAlm==='ALL' && multiAlm()){
+      var bits=[];
+      for(var j=0;j<DB.alms.length;j++){
+        var sq=stockAlm(mt.id,DB.alms[j].id);
+        if(sq>EPS || sq<-EPS){ bits.push(esc(DB.alms[j].nom)+': '+qty(sq)); }
+      }
+      if(bits.length){ sub=bits.join(' · ')+' — '+sub; }
+    }else if(fAlm==='ALL'){
+      sub+=' · val '+money(valOf(mt.id));
+    }
+    out+='<div class="mrow'+(low?' low':'')+'" data-id="'+mt.id+'">'
+      +'<div class="ml"><span class="cod">'+esc(mt.cod)+'</span>'+(low?'<span class="tag-min">MÍN</span>':'')
+      +'<div class="nom">'+esc(mt.nom)+'</div>'
+      +'<div class="sub">'+sub+'</div></div>'
+      +'<div class="mr"><div class="qty mono">'+qty(st)+'</div><div class="und">'+esc(mt.und)+'</div></div>'
+      +'</div>';
+  }
+  $('stockList').innerHTML=out+moreHTML('stock', rest);
+  var empty = DB.mats.length===0;
+  $('stockEmpty').className = empty? 'empty' : 'empty hidden';
+  $('bNewMat2').className = empty? 'btn ghost sm hidden' : 'btn ghost sm';
+}
+function movCardHTML(row, withName){
+  var m=row.m;
+  var mat=findMat(m.mid);
+  var nm = mat? mat.nom : '(material eliminado)';
+  var und = mat? mat.und : '';
+  var sign, q;
+  if(m.t==='T'){ sign='⇄ '; q=m.q; }
+  else if(m.t==='S' || m.t==='E'){ sign='−'; q=row.sal; }
+  else{ sign='+'; q=row.ent; }
+  var docAttr = (m.t==='S')? ' data-vale="'+row.id+'" style="text-decoration:underline;cursor:pointer" title="Ver vale"' : '';
+  return '<div class="mv t'+m.t+'" data-id="'+row.id+'">'
+    +'<div class="mvl"><span class="chip-doc mono"'+docAttr+'>'+esc(row.num)+'</span><div class="mvf">'+dmy(row.f)+'</div></div>'
+    +'<div class="mvm">'+(withName?('<div class="mvn">'+esc(nm)+'</div>'):'')
+    +'<div class="mvd">'+esc(movDetail(m,mat))+'</div></div>'
+    +'<div class="mvr"><div class="mvq mono">'+sign+qty(q)+' '+esc(und)+'</div>'
+    +'<div class="mvs">saldo '+qty(row.saldo)+'</div></div>'
+    +'<button type="button" class="anu" data-anu="'+row.id+'" title="Anular">✕</button>'
+    +'</div>';
+}
+function renderPriceHistory(mid){
+  var hist=priceHistory(mid);
+  var chips=$('phChips'), list=$('phList');
+  if(!hist.length){
+    chips.innerHTML='';
+    list.innerHTML='<div class="note" style="margin:0 0 12px">Sin compras registradas para comparar precios.</div>';
+    $('bCsvPh').className='btn ghost sm hidden';
+    return;
+  }
+  var mn=hist[0].p, mx=hist[0].p, last=hist[hist.length-1].p;
+  for(var i=1;i<hist.length;i++){
+    if(hist[i].p<mn){ mn=hist[i].p; }
+    if(hist[i].p>mx){ mx=hist[i].p; }
+  }
+  chips.innerHTML='<span class="almchip">Último: <b>'+money(last)+'</b></span>'
+    +'<span class="almchip">Mín: <b>'+money(mn)+'</b></span>'
+    +'<span class="almchip">Máx: <b>'+money(mx)+'</b></span>'
+    +'<span class="almchip">Compras: <b>'+hist.length+'</b></span>';
+  var out='';
+  for(var j=hist.length-1;j>=0;j--){
+    var h=hist[j], dHtml='';
+    if(h.delta===null || h.delta===undefined){ dHtml='<span class="flat">1.ª</span>'; }
+    else if(h.delta>0.05){ dHtml='<span class="up">▲ +'+num(h.delta,1)+'%</span>'; }
+    else if(h.delta<-0.05){ dHtml='<span class="down">▼ '+num(h.delta,1)+'%</span>'; }
+    else{ dHtml='<span class="flat">=</span>'; }
+    out+='<div class="ph"><div class="phl"><b>'+dmy(h.f)+'</b> · '+esc(h.prov||'—')
+      +'<div class="p2">'+qty(h.q)+' comprados</div></div>'
+      +'<div class="php mono">'+money(h.p)+'</div>'
+      +'<div class="phd">'+dHtml+'</div></div>';
+  }
+  list.innerHTML=out;
+  $('bCsvPh').className='btn ghost sm';
+}
+function renderKardex(){
+  var mid=PICK.kar;
+  var head=$('karHead');
+  var title=$('karTitle');
+  var rows=STATE.rows;
+  var html='';
+  if(mid){
+    var mt=findMat(mid);
+    head.className='';
+    $('kQ').innerHTML=qty(stockOf(mid))+' <span style="font-size:11px;color:#6B7076">'+(mt?esc(mt.und):'')+'</span>';
+    $('kAvg').innerHTML=num(avgOf(mid),2);
+    $('kVal').innerHTML=money(valOf(mid));
+    var ac='';
+    if(multiAlm()){
+      for(var k=0;k<DB.alms.length;k++){
+        ac+='<span class="almchip">'+esc(DB.alms[k].nom)+': <b>'+qty(stockAlm(mid,DB.alms[k].id))+'</b></span>';
+      }
+    }
+    var osk = mt? otherStock(mt.cod) : [];
+    if(osk.length){ ac+='<div class="eoinfo">En otras obras: '+esc(otherStockTxt(osk))+' <button type="button" data-eoask="'+mid+'" data-eoq="0">Pedir prestado</button></div>'; }
+    $('kAlms').innerHTML=ac;
+    renderPriceHistory(mid);
+    title.innerHTML='Movimientos del material';
+    var any=false, shown=0, rest=0;
+    for(var i=rows.length-1;i>=0;i--){
+      if(rows[i].mid!==mid){ continue; }
+      any=true;
+      if(shown<LIM.kar){ html+=movCardHTML(rows[i], false); shown++; }
+      else{ rest++; }
+    }
+    html+=moreHTML('kar', rest);
+    $('karEmpty').className= any? 'empty hidden':'empty';
+  }else{
+    head.className='hidden';
+    title.innerHTML='Últimos movimientos (todos · '+rows.length+')';
+    var n=0;
+    for(var j=rows.length-1;j>=0 && n<LIM.kar;j--){ html+=movCardHTML(rows[j], true); n++; }
+    html+=moreHTML('kar', rows.length-n);
+    $('karEmpty').className= rows.length? 'empty hidden':'empty';
+  }
+  $('karList').innerHTML=html;
+}
+
+function renderOCList(){
+  var qstr=($('qo').value||'').toLowerCase();
+  var out='', shown=0, rest=0;
+  for(var i=DB.ocs.length-1;i>=0;i--){
+    var oc=DB.ocs[i];
+    var st=ocEstadoInfo(oc);
+    var win = oc.win? findProv(oc.win) : null;
+    var b = oc.estado==='COT'? bestCot(oc) : null;
+    var matNames='';
+    for(var j=0;j<oc.items.length && j<4;j++){
+      var mt=findMat(oc.items[j].mid);
+      matNames+=(j?', ':'')+(mt?mt.nom:'');
+    }
+    var hay=(ocNumShow(oc)+' '+(oc.num||'')+' '+(win?win.nom:'')+' '+matNames).toLowerCase();
+    if(qstr && hay.indexOf(qstr)===-1){ continue; }
+    if(shown>=LIM.oc){ rest++; continue; }
+    shown++;
+    var right='';
+    if(oc.estado==='ADJ'){ right='<div class="pt mono">'+money(ocTotalAdj(oc))+'</div><div class="pc">'+oc.items.length+' ítems</div>'; }
+    else if(b){ right='<div class="pt mono">'+money(b.total)+'</div><div class="pc">mejor de '+oc.cots.length+' cot.</div>'; }
+    else{ right='<div class="pc">'+oc.items.length+' ítems · '+oc.cots.length+' cot.</div>'; }
+    out+='<div class="prow" data-ocid="'+oc.id+'" style="border-left-color:#8A6400">'
+      +'<div class="pl"><span class="stchip st'+st.code+'">'+st.label+'</span><span class="chip-doc mono" style="background:#F0F1ED;color:#22272B">'+esc(ocNumShow(oc))+'</span>'
+      +'<div class="pn">'+(win?esc(win.nom):esc(matNames||'Sin ítems'))+'</div>'
+      +'<div class="ps">'+dmy(oc.f)+(win?(' · '+esc(matNames)):'')+'</div></div>'
+      +'<div class="pr">'+right+'</div>'
+      +'</div>';
+  }
+  $('ocList').innerHTML=out+moreHTML('oc', rest);
+  $('ocEmpty').className = DB.ocs.length? 'empty hidden':'empty';
+}
+function ocPriceGet(cot, mid){
+  if(!cot.pr){ return ''; }
+  var v=cot.pr[mid];
+  return (v===undefined||v===null)?'':v;
+}
+function renderOCComp(oc){
+  var box=$('ocdComp');
+  if(!oc.items.length || !oc.cots.length){
+    box.innerHTML='<div class="note" style="margin:0 0 10px">Agrega ítems y al menos un proveedor con precios para ver el comparativo.</div>';
+    return;
+  }
+  var i,j;
+  var totals=[], mins={};
+  for(j=0;j<oc.cots.length;j++){ totals.push(cotTotal(oc,oc.cots[j])); }
+  for(i=0;i<oc.items.length;i++){
+    var mid=oc.items[i].mid, mn=null;
+    for(j=0;j<oc.cots.length;j++){
+      var p=oc.cots[j].pr? oc.cots[j].pr[mid] : undefined;
+      if(p!==undefined && p!==null && p!==''){
+        if(mn===null || p<mn){ mn=p; }
+      }
+    }
+    mins[mid]=mn;
+  }
+  var minTot=null;
+  for(j=0;j<totals.length;j++){
+    if(totals[j].ok && (minTot===null || totals[j].total<minTot)){ minTot=totals[j].total; }
+  }
+  var h='<div class="tscroll"><table class="cmp"><tr><th class="l">Ítem</th><th>Cant.</th><th>Últ. S/</th>';
+  for(j=0;j<oc.cots.length;j++){
+    var pv=findProv(oc.cots[j].pid);
+    h+='<th>'+esc(pv?pv.nom:'—')+'</th>';
+  }
+  h+='</tr>';
+  for(i=0;i<oc.items.length;i++){
+    var it=oc.items[i], mt=findMat(it.mid);
+    var lp=lastPaid(it.mid);
+    h+='<tr><td class="l"><b>'+(mt?esc(mt.nom):'—')+'</b><br><span style="color:#6B7076;font-size:10.5px">'+(mt?esc(mt.und):'')+'</span></td>'
+      +'<td>'+qty(it.q)+'</td>'
+      +'<td>'+(lp===null?'—':num(lp,2))+'</td>';
+    for(j=0;j<oc.cots.length;j++){
+      var pj=oc.cots[j].pr? oc.cots[j].pr[it.mid] : undefined;
+      if(pj===undefined || pj===null || pj===''){
+        h+='<td style="color:#9AA0A6">—</td>';
+      }else{
+        var best = (mins[it.mid]!==null && Math.abs(pj-mins[it.mid])<0.005);
+        h+='<td'+(best?' class="best"':'')+'>'+num(pj,2)+'<br><span style="font-size:10px;color:'+(best?'#1F7A3B':'#6B7076')+'">'+num(pj*it.q,2)+'</span></td>';
+      }
+    }
+    h+='</tr>';
+  }
+  h+='<tr class="tot"><td class="l">TOTAL</td><td></td><td></td>';
+  for(j=0;j<oc.cots.length;j++){
+    if(totals[j].ok){
+      var bt = (minTot!==null && Math.abs(totals[j].total-minTot)<0.005);
+      h+='<td'+(bt?' class="best"':'')+'>'+num(totals[j].total,2)+'</td>';
+    }else{
+      h+='<td style="color:#9AA0A6">incompleta</td>';
+    }
+  }
+  h+='</tr></table></div>';
+  box.innerHTML=h;
+}
+function renderOCDetail(){
+  var oc=findOC(OC_SEL);
+  if(!oc){ showView('oc'); return; }
+  var st=ocEstadoInfo(oc);
+  var editable = oc.estado==='COT';
+  var win = oc.win? findProv(oc.win) : null;
+  var i,j;
+
+  var head='<div style="font-size:16px;font-weight:800"><span class="stchip st'+st.code+'">'+st.label+'</span>'
+    +'<span class="chip-doc mono" style="background:#F0F1ED;color:#22272B">'+esc(ocNumShow(oc))+'</span></div>'
+    +'<div class="note" style="margin-top:6px">Fecha: <b>'+dmy(oc.f)+'</b>'
+    +(oc.fAdj?(' · Adjudicada: <b>'+dmy(oc.fAdj)+'</b>'):'')
+    +(win?(' · Proveedor: <b>'+esc(win.nom)+'</b>'):'')
+    +(oc.estado==='ADJ'?(' · Total: <b>'+money(ocTotalAdj(oc))+'</b>'):'')
+    +'</div>'
+    +((oc.cond&&!editable)?('<div class="note">Condiciones: '+esc(oc.cond)+'</div>'):'')
+    +((oc.obs&&!editable)?('<div class="note">Obs.: '+esc(oc.obs)+'</div>'):'');
+  $('ocdHead').innerHTML=head;
+
+  if(editable){
+    $('ocdCfg').className='card';
+    $('ocF').value=oc.f||todayISO();
+    fillAlmSelect($('ocAlm'), false);
+    if(oc.alm && findAlm(oc.alm)){ $('ocAlm').value=oc.alm; }
+    $('ocCond').value=oc.cond||'';
+    $('ocObs').value=oc.obs||'';
+  }else{
+    $('ocdCfg').className='card hidden';
+  }
+
+  var itHtml='';
+  for(i=0;i<oc.items.length;i++){
+    var it=oc.items[i], mt=findMat(it.mid);
+    var lp=lastPaid(it.mid);
+    var osi = mt? otherStock(mt.cod) : [];
+    itHtml+='<div class="ocitem"><div class="oi"><b>'+(mt?esc(mt.nom):'—')+'</b>'
+      +'<div class="p2">'+(mt?esc(mt.und):'')+(lp!==null?(' · últ. pagado '+money(lp)):'')+'</div>'
+      +((osi.length && oc.estado!=='ANU')?('<div class="eoinfo">Saldo en otras obras: '+esc(otherStockTxt(osi))
+        +(editable?(' <button type="button" data-eoask="'+it.mid+'" data-eoq="'+Math.max(0,it.q-stockOf(it.mid))+'">Pedir prestado</button>'):'')+'</div>'):'')
+      +'</div>'
+      +'<div class="oq mono">'+qty(it.q)+'</div>'
+      +(editable?('<button type="button" data-ocdelitem="'+it.mid+'" title="Quitar">✕</button>'):'')
+      +'</div>';
+  }
+  if(!itHtml){ itHtml='<div class="note" style="margin:0">Sin ítems. Agrega los materiales a cotizar.</div>'; }
+  $('ocdItems').innerHTML=itHtml;
+  $('ocdAddItem').className = editable? '' : 'hidden';
+
+  var cHtml='';
+  for(j=0;j<oc.cots.length;j++){
+    var cot=oc.cots[j];
+    var pv=findProv(cot.pid);
+    var tt=cotTotal(oc,cot);
+    cHtml+='<div class="cotcard"><div class="ct">'+(pv?esc(pv.nom):'—')
+      +(tt.ok?(' — <span class="mono">'+money(tt.total)+'</span>'):' — <span style="color:#8A6400">precios incompletos</span>')
+      +(editable?(' <button type="button" class="linkbtn" data-occotdel="'+j+'" style="float:right;padding:0">Quitar</button>'):'')
+      +'</div>';
+    for(i=0;i<oc.items.length;i++){
+      var itm=oc.items[i], mtt=findMat(itm.mid);
+      cHtml+='<div class="cotline"><div class="cn">'+(mtt?esc(mtt.nom):'—')+' <span style="color:#6B7076">× '+qty(itm.q)+'</span></div>'
+        +'<span style="color:#6B7076">S/</span>'
+        +'<input type="number" step="any" min="0" inputmode="decimal" data-occp="'+j+'|'+itm.mid+'" value="'+esc(ocPriceGet(cot,itm.mid))+'"'+(editable?'':' readonly')+'>'
+        +'</div>';
+    }
+    cHtml+='<div class="cotline"><div class="cn" style="color:#6B7076">Nota (plazo, condición)</div>'
+      +'<input type="text" style="width:170px;text-align:left" data-occn="'+j+'" value="'+esc(cot.nota||'')+'"'+(editable?'':' readonly')+'></div>'
+      +'</div>';
+  }
+  if(!cHtml && editable){ cHtml='<div class="note" style="margin:0 0 10px">Agrega proveedores para registrar sus cotizaciones.</div>'; }
+  $('ocdCots').innerHTML=cHtml;
+  $('bOcAddCot').className = editable? 'btn ghost sm' : 'btn ghost sm hidden';
+
+  renderOCComp(oc);
+
+  var recHtml='';
+  if(oc.estado==='ADJ'){
+    recHtml+='<div class="vtitle" style="margin-top:14px">Avance de recepción</div><div class="card">';
+    for(i=0;i<oc.items.length;i++){
+      var it2=oc.items[i], mt2=findMat(it2.mid);
+      var r=recOf(oc.id,it2.mid), pend=it2.q-r;
+      recHtml+='<div class="progline"><div class="pn2">'+(mt2?esc(mt2.nom):'—')+'</div>'
+        +'<div class="'+(pend<=EPS?'okc':'pendc')+' mono">'+qty(r)+' / '+qty(it2.q)
+        +(pend>EPS?(' · falta '+qty(pend)):' ✓')+'</div></div>';
+    }
+    recHtml+='</div>';
+  }
+  $('ocdRec').innerHTML=recHtml;
+
+  var act='';
+  if(editable){
+    for(j=0;j<oc.cots.length;j++){
+      var t2=cotTotal(oc,oc.cots[j]);
+      if(t2.ok && oc.items.length){
+        var pv2=findProv(oc.cots[j].pid);
+        act+='<button class="btn blue sm" data-ocadj="'+j+'">Adjudicar a '+esc(pv2?pv2.nom:'—')+' — '+money(t2.total)+'</button>';
+      }
+    }
+    act+='<button class="btn ghost sm" id="bOcDel">Eliminar solicitud</button>';
+  }else if(oc.estado==='ADJ'){
+    act+='<button class="btn amber sm" id="bOcPrint">Ver / imprimir OC</button>';
+    if(st.code!=='REC'){ act+='<button class="btn green sm" id="bOcRec">Recibir mercadería</button>'; }
+    if(!ocHasRec(oc.id)){ act+='<button class="btn ghost sm" id="bOcAnu">Anular OC</button>'; }
+  }else if(oc.estado==='ANU'){
+    act+='<button class="btn ghost sm" id="bOcDel">Eliminar del historial</button>';
+  }
+  $('ocdActions').innerHTML=act;
+}
+
+function renderProvList(){
+  var qstr=($('qp').value||'').toLowerCase();
+  var list=DB.provs.slice(0);
+  list.sort(function(a,b){ return (''+a.nom).toLowerCase()<(''+b.nom).toLowerCase()?-1:1; });
+  var out='', shown=0, rest=0;
+  for(var i=0;i<list.length;i++){
+    var p=list[i];
+    var hay=((p.ruc||'')+' '+p.nom+' '+(p.ciu||'')).toLowerCase();
+    if(qstr && hay.indexOf(qstr)===-1){ continue; }
+    if(shown>=LIM.prov){ rest++; continue; }
+    shown++;
+    var st=provStats(p.id);
+    var sub=[];
+    if(p.ciu){ sub.push(p.ciu); }
+    if(p.tel){ sub.push(p.tel); }
+    out+='<div class="prow" data-pid="'+p.id+'">'
+      +'<div class="pl">'+(p.ruc?('<span class="rucchip mono">'+esc(p.ruc)+'</span>'):'')
+      +'<div class="pn">'+esc(p.nom)+'</div>'
+      +'<div class="ps">'+esc(sub.join(' · ')||'—')+'</div></div>'
+      +'<div class="pr"><div class="pt mono">'+money(st.tot)+'</div><div class="pc">'+st.n+' compras</div></div>'
+      +'</div>';
+  }
+  $('provList').innerHTML=out+moreHTML('prov', rest);
+  $('provEmpty').className = DB.provs.length? 'empty hidden':'empty';
+  $('provCnt').innerHTML='Registrados: <b>'+DB.provs.length+'</b>';
+}
+function renderProvDetail(){
+  var p=findProv(PROV_SEL);
+  if(!p){ showView('prov'); return; }
+  var st=provStats(p.id);
+  var rows='';
+  rows+=p.ruc?('<div><span class="lbl" style="margin-top:8px">RUC</span>'+esc(p.ruc)+'</div>'):'';
+  rows+=p.con?('<div><span class="lbl" style="margin-top:8px">Contacto</span>'+esc(p.con)+'</div>'):'';
+  rows+=p.tel?('<div><span class="lbl" style="margin-top:8px">Teléfono</span>'+esc(p.tel)+'</div>'):'';
+  rows+=(p.dir||p.ciu)?('<div><span class="lbl" style="margin-top:8px">Ubicación</span>'+esc([p.dir,p.ciu].join(p.dir&&p.ciu?' — ':''))+'</div>'):'';
+  rows+=p.obs?('<div><span class="lbl" style="margin-top:8px">Observación</span>'+esc(p.obs)+'</div>'):'';
+  $('pdCard').innerHTML='<div style="font-size:17px;font-weight:800">'+esc(p.nom)+'</div>'
+    +'<div class="note" style="margin-top:4px">Total comprado: <b>'+money(st.tot)+'</b> · '+st.n+' compras'
+    +(st.last?(' · última '+dmy(st.last)):'')+'</div>'+rows;
+
+  var links='';
+  var d=digits(p.tel);
+  if(d.length>=6){ links+='<a class="abtn" href="tel:'+(d.length===9?'+51':'')+d+'">Llamar</a>'; }
+  if(d.length===9){ links+='<a class="abtn" href="https://wa.me/51'+d+'" target="_blank" rel="noopener">WhatsApp</a>'; }
+  if(p.dir || p.ciu){
+    links+='<a class="abtn" href="https://www.google.com/maps/search/?api=1&query='
+      +encodeURIComponent([p.dir,p.ciu].join(', '))+'" target="_blank" rel="noopener">Mapa</a>';
+  }
+  $('pdLinks').innerHTML=links;
+
+  var ms=provMatSummary(p.id), mOut='';
+  for(var i=0;i<ms.length;i++){
+    var e=ms[i];
+    if(!e.mat){ continue; }
+    var rango = (Math.abs(e.s.max-e.s.min)>0.005)? (' <span class="p2">(rango '+num(e.s.min,2)+'–'+num(e.s.max,2)+')</span>') : '';
+    mOut+='<div class="ph"><div class="phl"><b>'+esc(e.mat.nom)+'</b>'
+      +'<div class="p2">'+e.s.n+' compras · última '+dmy(e.s.f)+'</div></div>'
+      +'<div class="php mono">'+money(e.s.last)+rango+'</div></div>';
+  }
+  $('pdMats').innerHTML = mOut || '<div class="note" style="margin:0">Sin compras aún.</div>';
+
+  var bOut='', cnt=0, bRest=0;
+  for(var j=DB.movs.length-1;j>=0;j--){
+    var m=DB.movs[j];
+    if(m.t!=='I' || m.pid!==p.id){ continue; }
+    if(cnt>=LIM.pd){ bRest++; continue; }
+    var mt=findMat(m.mid);
+    bOut+='<div class="ph"><div class="phl"><b>'+dmy(m.f)+'</b> · '+(mt?esc(mt.nom):'—')
+      +'<div class="p2">'+esc(m.num)+(m.ocn?(' · '+esc(m.ocn)):'')+(m.gui?(' · G/R '+esc(m.gui)):'')+'</div></div>'
+      +'<div class="php mono">'+qty(m.q)+' × '+num(m.p||0,2)+'<div class="p2" style="text-align:right">'+money(m.q*(m.p||0))+'</div></div></div>';
+    cnt++;
+  }
+  $('pdBuys').innerHTML = bOut? (bOut+moreHTML('pd', bRest)) : '<div class="note" style="margin:0">Sin compras registradas.</div>';
+}
+function renderAlmAdmin(){
+  var out='';
+  for(var i=0;i<DB.alms.length;i++){
+    var al=DB.alms[i];
+    out+='<div class="almrow"><div class="an"><b>'+esc(al.nom)+'</b>'
+      +'<div class="p2">'+(al.resp?('Almacenero/a: '+esc(al.resp)):'Sin responsable asignado')+'</div></div>'
+      +'<button type="button" data-almedit="'+al.id+'">✎ Editar</button>'
+      +'<button type="button" data-almdel="'+al.id+'">✕</button></div>';
+  }
+  $('almList').innerHTML=out;
+}
+function fillAlmSelect(el, keep){
+  var cur = keep? el.value : '';
+  var html='';
+  for(var i=0;i<DB.alms.length;i++){
+    html+='<option value="'+esc(DB.alms[i].id)+'">'+esc(DB.alms[i].nom)+'</option>';
+  }
+  el.innerHTML=html;
+  if(cur && findAlm(cur)){ el.value=cur; }
+}
+function renderAlmSelects(){
+  fillAlmSelect($('ingAlm'), true);
+  fillAlmSelect($('salAlm'), true);
+  fillAlmSelect($('trfFrom'), true);
+  fillAlmSelect($('trfTo'), true);
+  var show = multiAlm();
+  $('wrapAlmIn').className = (show && ingTipo!=='T')? '' : 'hidden';
+  $('wrapAlmOut').className = show? '' : 'hidden';
+}
+function renderMas(){
+  $('cObra').value=DB.obra||'';
+  $('cEmp').value=DB.empresa||'';
+  $('cAlm').value=DB.encargado||'';
+  $('cPisos').value=DB.pisos||11;
+  $('bNom').value=(DB.brand&&DB.brand.nom)||'';
+  $('bCip').value=(DB.brand&&DB.brand.cip)||'';
+  $('bCel').value=(DB.brand&&DB.brand.cel)||'';
+  $('cnt').innerHTML='Materiales: <b>'+DB.mats.length+'</b> · Proveedores: <b>'+DB.provs.length+'</b> · Movimientos: <b>'+DB.movs.length+'</b> · OC: <b>'+DB.ocs.length+'</b>';
+  renderAlmAdmin();
+  renderProjects();
+  renderStorageInfo();
+  var lo=loansOf(DB), nOut=0, nIn=0;
+  for(var li=0;li<lo.length;li++){ if(lo[li].pend>EPS){ if(lo[li].dir==='out'){ nOut++; }else{ nIn++; } } }
+  $('eoCnt').innerHTML = META.projects.length<2? 'Disponible cuando tengas dos o más obras.'
+    : ('Préstamos pendientes — prestados por esta obra: <b>'+nOut+'</b> · recibidos por devolver: <b>'+nIn+'</b>');
+  renderBackupInfo();
+}
+function pickChipRefresh(x){
+  var mid=PICK[x];
+  if(!mid){ return; }
+  var mt=findMat(mid);
+  if(!mt){ pickClear(x); return; }
+  $('pcc-'+x).innerHTML=esc(mt.cod);
+  $('pcn-'+x).innerHTML=esc(mt.nom);
+  var txt;
+  if(x==='sal' && multiAlm()){
+    var alm=$('salAlm').value||defaultAlmId();
+    txt='En '+esc(almName(alm))+': <b>'+qty(stockAlm(mid,alm))+' '+esc(mt.und)+'</b> · total '+qty(stockOf(mid));
+  }else if(x==='oc'){
+    var lp=lastPaid(mid);
+    txt='Stock: <b>'+qty(stockOf(mid))+' '+esc(mt.und)+'</b>'+(lp!==null?(' · últ. pagado '+money(lp)):'');
+    var oso=otherStock(mt.cod);
+    if(oso.length){ txt+='<div class="eoinfo">En otras obras: '+esc(otherStockTxt(oso))+' — evita comprar de más.</div>'; }
+  }else{
+    txt='Stock: <b>'+qty(stockOf(mid))+' '+esc(mt.und)+'</b> · prom '+money(avgOf(mid));
+  }
+  $('pcs-'+x).innerHTML=txt;
+}
+function provChipRefresh(){
+  if(!PROV_PICK){ return; }
+  var p=findProv(PROV_PICK);
+  if(!p){ provPickClear(); return; }
+  $('pvn').innerHTML=(p.ruc?('<span class="rucchip mono">'+esc(p.ruc)+'</span>'):'')+esc(p.nom);
+  var st=provStats(p.id);
+  $('pvs').innerHTML=(p.ciu?esc(p.ciu)+' · ':'')+st.n+' compras · '+money(st.tot);
+}
+function trfHint(){
+  var mid=PICK.ing;
+  if(ingTipo!=='T' || !mid){ $('trfDisp').innerHTML=''; return; }
+  var mt=findMat(mid);
+  var o=$('trfFrom').value||defaultAlmId();
+  $('trfDisp').innerHTML='Disponible en '+esc(almName(o))+': <b>'+qty(stockAlm(mid,o))+' '+(mt?esc(mt.und):'')+'</b>';
+}
+function renderPisos(){
+  var n=DB.pisos||11;
+  if($('salPiso').getAttribute('data-n')===''+n){ return; }
+  var a=$('salPiso').value, b=$('devPiso').value;
+  var list=pisosList(n);
+  fillSelect($('salPiso'), list);
+  fillSelect($('devPiso'), list);
+  $('salPiso').setAttribute('data-n',''+n);
+  if(a){ $('salPiso').value=a; }
+  if(b){ $('devPiso').value=b; }
+  if(!$('salPiso').value){ $('salPiso').selectedIndex=0; }
+  if(!$('devPiso').value){ $('devPiso').selectedIndex=0; }
+}
+function renderProjects(){
+  var sel=$('projSel'), html='';
+  var list=META.projects.slice(0);
+  list.sort(function(a,b){ return (''+a.nom).toLowerCase()<(''+b.nom).toLowerCase()?-1:1; });
+  for(var i=0;i<list.length;i++){
+    html+='<option value="'+esc(list[i].id)+'">'+esc(list[i].nom)+'</option>';
+  }
+  sel.innerHTML=html;
+  sel.value=CUR;
+  $('projInfo').innerHTML='Obras registradas: <b>'+META.projects.length+'</b>';
+  $('bDelProj').className = META.projects.length>1? 'btn ghost sm' : 'btn ghost sm hidden';
+}
+function fmtMB(b){ return num(b/1048576, b<10485760?1:0)+' MB'; }
+function renderStorageInfo(){
+  var mode={
+    idb:'Guardado automático en la base de datos del navegador (IndexedDB). Sin límite de registros: el tope es el espacio libre del teléfono.',
+    ls:'⚠ Guardado en localStorage (este navegador no permitió IndexedDB). Límite aproximado de 5 MB: exporta respaldos seguido.',
+    none:'⚠ Sin guardado permanente en esta vista: usa el respaldo JSON.'
+  }[ST.mode];
+  $('stMode').innerHTML=mode;
+  $('stQuota').innerHTML='';
+  if(ST.mode==='idb' && navigator.storage && navigator.storage.estimate){
+    try{
+      navigator.storage.estimate().then(function(e){
+        if(e && e.quota){
+          $('stQuota').innerHTML='Usado: <b>'+fmtMB(e.usage||0)+'</b> de <b>'+fmtMB(e.quota)+'</b> disponibles para esta app.';
+        }
+      }, function(){});
+    }catch(e){}
+  }
+}
+function daysSince(iso){
+  if(!iso){ return null; }
+  var t=new Date(iso).getTime();
+  if(isNaN(t)){ return null; }
+  return Math.floor((new Date().getTime()-t)/86400000);
+}
+function renderBackupInfo(){
+  var d=daysSince(META.lastBackup);
+  $('bkInfo').innerHTML = d===null? 'Aún no has descargado un respaldo en este teléfono.'
+    : ('Último respaldo: <b>'+dmy(META.lastBackup.substring(0,10))+'</b>'+(d>0?(' (hace '+d+' día'+(d===1?'':'s')+')'):' (hoy)')+'.');
+  var w=$('bkWarn');
+  if(persist && DB.movs.length>0 && (d===null || d>=BK_DAYS)){
+    w.innerHTML=(d===null? '⚠ Aún no tienes respaldo de tus datos.' : ('⚠ Tu último respaldo fue hace '+d+' días.'))
+      +'<button type="button" id="bkNow">Respaldar ahora</button>';
+    w.className='np';
+  }else{
+    w.className='np hidden';
+  }
+  $('bShare').className = canShareFiles()? 'btn ghost sm' : 'btn ghost sm hidden';
+}
+function renderAll(){
+  STATE=computeAll();
+  renderPisos();
+  renderBrand();
+  renderHeader();
+  renderStock();
+  renderKardex();
+  renderOCList();
+  if(OC_SEL){ renderOCDetail(); }
+  renderProvList();
+  if(PROV_SEL){ renderProvDetail(); }
+  renderMas();
+  renderAlmSelects();
+  pickChipRefresh('ing'); pickChipRefresh('sal'); pickChipRefresh('kar'); pickChipRefresh('oc');
+  provChipRefresh();
+  trfHint();
+}
+
+function pickSet(x, mid){
+  PICK[x]=mid;
+  $('pc-'+x).className='pick-chip';
+  $('pw-'+x).className='hidden';
+  $('pi-'+x).value='';
+  $('ps-'+x).innerHTML='';
+  pickChipRefresh(x);
+  if(x==='kar'){ limReset('kar'); renderKardex(); }
+  if(x==='ing'){ trfHint(); }
+}
+function pickClear(x){
+  PICK[x]=null;
+  $('pc-'+x).className='pick-chip hidden';
+  $('pw-'+x).className='';
+  if(x==='kar'){ limReset('kar'); renderKardex(); }
+  if(x==='ing'){ trfHint(); }
+}
+function pickSuggest(x){
+  var qstr=($('pi-'+x).value||'').toLowerCase();
+  var box=$('ps-'+x);
+  if(DB.mats.length===0){
+    box.innerHTML='<div class="nores">No hay materiales aún. Crea uno nuevo o carga el catálogo base en «Más».</div>';
+    return;
+  }
+  var list=DB.mats.slice(0);
+  list.sort(function(a,b){ return a.cod<b.cod?-1:1; });
+  var html='', n=0, rest=0, lim=LIM['sug-'+x]||8;
+  for(var i=0;i<list.length;i++){
+    var mt=list[i];
+    var hay=(mt.cod+' '+mt.nom).toLowerCase();
+    if(qstr && hay.indexOf(qstr)===-1){ continue; }
+    if(n>=lim){ rest++; continue; }
+    html+='<button type="button" data-id="'+mt.id+'"><span class="cod">'+esc(mt.cod)+'</span><b>'+esc(mt.nom)+'</b>'
+      +'<span class="s2">Stock: '+qty(stockOf(mt.id))+' '+esc(mt.und)+'</span></button>';
+    n++;
+  }
+  if(!html){ html='<div class="nores">Sin coincidencias.</div>'; }
+  box.innerHTML=html+moreHTML('sug-'+x, rest);
+}
+function bindPicker(x){
+  $('pi-'+x).addEventListener('input', function(){ limReset('sug-'+x); pickSuggest(x); });
+  $('pi-'+x).addEventListener('focus', function(){ pickSuggest(x); });
+  $('ps-'+x).addEventListener('click', function(ev){
+    var b=ev.target;
+    while(b && b!==this && !b.getAttribute('data-id')){ b=b.parentNode; }
+    if(b && b.getAttribute && b.getAttribute('data-id')){ pickSet(x, b.getAttribute('data-id')); }
+  });
+}
+
+function provPickSet(pid){
+  PROV_PICK=pid;
+  $('pvchip').className='pick-chip';
+  $('pvwrap').className='hidden';
+  $('pvi').value='';
+  $('pvsug').innerHTML='';
+  provChipRefresh();
+}
+function provPickClear(){
+  PROV_PICK=null;
+  $('pvchip').className='pick-chip hidden';
+  $('pvwrap').className='';
+}
+function provSuggest(){
+  var qstr=($('pvi').value||'').toLowerCase();
+  var box=$('pvsug');
+  if(DB.provs.length===0){
+    box.innerHTML='<div class="nores">Sin proveedores. Crea el primero con «＋ Nuevo proveedor».</div>';
+    return;
+  }
+  var list=DB.provs.slice(0);
+  list.sort(function(a,b){ return (''+a.nom).toLowerCase()<(''+b.nom).toLowerCase()?-1:1; });
+  var html='', n=0, rest=0;
+  for(var i=0;i<list.length;i++){
+    var p=list[i];
+    var hay=((p.ruc||'')+' '+p.nom+' '+(p.ciu||'')).toLowerCase();
+    if(qstr && hay.indexOf(qstr)===-1){ continue; }
+    if(n>=LIM.pv){ rest++; continue; }
+    html+='<button type="button" data-pvid="'+p.id+'">'
+      +(p.ruc?('<span class="rucchip mono">'+esc(p.ruc)+'</span>'):'')+'<b>'+esc(p.nom)+'</b>'
+      +'<span class="s2">'+esc(p.ciu||'')+(p.tel?(' · '+esc(p.tel)):'')+'</span></button>';
+    n++;
+  }
+  if(!html){ html='<div class="nores">Sin coincidencias. Puedes crearlo nuevo.</div>'; }
+  box.innerHTML=html+moreHTML('pv', rest);
+}
+
+function pselOpen(){
+  $('psq').value='';
+  pselList();
+  $('pselModal').className='modal np';
+}
+function pselClose(){ $('pselModal').className='modal np hidden'; }
+function pselList(){
+  var oc=findOC(OC_SEL);
+  var qstr=($('psq').value||'').toLowerCase();
+  var list=DB.provs.slice(0);
+  list.sort(function(a,b){ return (''+a.nom).toLowerCase()<(''+b.nom).toLowerCase()?-1:1; });
+  var html='', n=0, rest=0;
+  for(var i=0;i<list.length;i++){
+    var p=list[i];
+    var used=false;
+    if(oc){
+      for(var j=0;j<oc.cots.length;j++){ if(oc.cots[j].pid===p.id){ used=true; break; } }
+    }
+    if(used){ continue; }
+    var hay=((p.ruc||'')+' '+p.nom+' '+(p.ciu||'')).toLowerCase();
+    if(qstr && hay.indexOf(qstr)===-1){ continue; }
+    if(n>=LIM.psel){ rest++; continue; }
+    html+='<button type="button" data-psel="'+p.id+'">'
+      +(p.ruc?('<span class="rucchip mono">'+esc(p.ruc)+'</span>'):'')+'<b>'+esc(p.nom)+'</b>'
+      +'<span class="s2">'+esc(p.ciu||'')+(p.tel?(' · '+esc(p.tel)):'')+'</span></button>';
+    n++;
+  }
+  if(!html){ html='<div class="nores">Sin proveedores disponibles. Crea uno nuevo.</div>'; }
+  $('pslist').innerHTML=html+moreHTML('psel', rest);
+}
+function ocAddCot(pid){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='COT'){ return; }
+  for(var j=0;j<oc.cots.length;j++){ if(oc.cots[j].pid===pid){ return; } }
+  oc.cots.push({pid:pid, pr:{}, nota:''});
+  save(); renderOCDetail();
+}
+
+function openMatModal(matId){
+  editingMatId = matId || null;
+  $('mTitle').innerHTML = matId? 'Editar material' : 'Nuevo material';
+  if(matId){
+    var mt=findMat(matId);
+    $('mCod').value=mt.cod; $('mNom').value=mt.nom; $('mUnd').value=mt.und; $('mMin').value=mt.min||'';
+    $('mDel').style.display='block';
+  }else{
+    $('mCod').value=''; $('mNom').value=''; $('mUnd').value='und'; $('mMin').value='';
+    $('mDel').style.display='none';
+  }
+  $('mmodal').className='modal np';
+}
+function closeMatModal(){ $('mmodal').className='modal np hidden'; pendingPickTarget=null; }
+function saveMat(){
+  var cod=trim($('mCod').value).toUpperCase();
+  var nom=trim($('mNom').value);
+  var und=$('mUnd').value;
+  var min=parseNum($('mMin').value);
+  if(!cod || !nom){ toast('Completa código y descripción.'); return; }
+  for(var i=0;i<DB.mats.length;i++){
+    if(DB.mats[i].cod===cod && DB.mats[i].id!==editingMatId){
+      toast('El código '+cod+' ya existe.'); return;
+    }
+  }
+  if(editingMatId){
+    var mt=findMat(editingMatId);
+    mt.cod=cod; mt.nom=nom; mt.und=und; mt.min=min;
+    toast('Material actualizado.');
+  }else{
+    var nid=genId('m');
+    DB.mats.push({id:nid,cod:cod,nom:nom,und:und,min:min});
+    if(pendingPickTarget){ pickSet(pendingPickTarget,nid); }
+    toast('Material creado: '+cod);
+  }
+  save(); renderAll(); closeMatModal();
+}
+function delMat(){
+  if(!editingMatId){ return; }
+  if(matHasMovs(editingMatId) || matInOCs(editingMatId)){
+    alert('No se puede eliminar: el material tiene movimientos u órdenes de compra asociadas.');
+    return;
+  }
+  if(!confirm('¿Eliminar este material del catálogo?')){ return; }
+  for(var i=0;i<DB.mats.length;i++){
+    if(DB.mats[i].id===editingMatId){ DB.mats.splice(i,1); break; }
+  }
+  var xs=['kar','ing','sal','oc'];
+  for(var j=0;j<xs.length;j++){ if(PICK[xs[j]]===editingMatId){ pickClear(xs[j]); } }
+  save(); renderAll(); closeMatModal(); toast('Material eliminado.');
+}
+
+function openProvModal(provId){
+  editingProvId = provId || null;
+  $('pTitle').innerHTML = provId? 'Editar proveedor' : 'Nuevo proveedor';
+  var p = provId? findProv(provId) : null;
+  $('pNom').value=p?p.nom:'';
+  $('pRuc').value=p?(p.ruc||''):'';
+  $('pTel').value=p?(p.tel||''):'';
+  $('pCon').value=p?(p.con||''):'';
+  $('pDir').value=p?(p.dir||''):'';
+  $('pCiu').value=p?(p.ciu||''):'';
+  $('pObs').value=p?(p.obs||''):'';
+  $('pmodal').className='modal np';
+}
+function closeProvModal(){ $('pmodal').className='modal np hidden'; provCreateTarget=null; }
+function saveProv(){
+  var nom=trim($('pNom').value);
+  if(!nom){ toast('La razón social es obligatoria.'); return; }
+  var ruc=digits($('pRuc').value);
+  if(ruc && ruc.length!==11){
+    if(!confirm('El RUC suele tener 11 dígitos (ingresaste '+ruc.length+'). ¿Guardar igual?')){ return; }
+  }
+  for(var i=0;i<DB.provs.length;i++){
+    var ex=DB.provs[i];
+    if(ex.id===editingProvId){ continue; }
+    if(ruc && ex.ruc===ruc){ toast('Ya existe un proveedor con ese RUC.'); return; }
+  }
+  var data={
+    nom:nom, ruc:ruc,
+    tel:trim($('pTel').value), con:trim($('pCon').value),
+    dir:trim($('pDir').value), ciu:trim($('pCiu').value), obs:trim($('pObs').value)
+  };
+  if(editingProvId){
+    var p=findProv(editingProvId);
+    p.nom=data.nom; p.ruc=data.ruc; p.tel=data.tel; p.con=data.con; p.dir=data.dir; p.ciu=data.ciu; p.obs=data.obs;
+    toast('Proveedor actualizado.');
+  }else{
+    var np={id:genId('p'), nom:data.nom, ruc:data.ruc, tel:data.tel, con:data.con, dir:data.dir, ciu:data.ciu, obs:data.obs};
+    DB.provs.push(np);
+    if(provCreateTarget==='pick'){ provPickSet(np.id); }
+    else if(provCreateTarget==='oc'){ ocAddCot(np.id); pselClose(); }
+    toast('Proveedor creado.');
+  }
+  save(); renderAll(); closeProvModal();
+}
+function delProv(){
+  var p=findProv(PROV_SEL);
+  if(!p){ return; }
+  if(provHasMovs(p.id)){
+    alert('No se puede eliminar: el proveedor tiene compras o cotizaciones registradas.');
+    return;
+  }
+  if(!confirm('¿Eliminar a '+p.nom+' del directorio?')){ return; }
+  for(var i=0;i<DB.provs.length;i++){
+    if(DB.provs[i].id===p.id){ DB.provs.splice(i,1); break; }
+  }
+  if(PROV_PICK===p.id){ provPickClear(); }
+  PROV_SEL=null;
+  save(); renderAll(); showView('prov'); toast('Proveedor eliminado.');
+}
+
+function openAlmModal(almId){
+  editingAlmId = almId || null;
+  $('aTitle').innerHTML = almId? 'Editar almacén' : 'Nuevo almacén';
+  var al = almId? findAlm(almId) : null;
+  $('aNom').value=al?al.nom:'';
+  $('aResp').value=al?(al.resp||''):'';
+  $('amodal').className='modal np';
+}
+function closeAlmModal(){ $('amodal').className='modal np hidden'; }
+function saveAlm(){
+  var nom=trim($('aNom').value);
+  if(!nom){ toast('El nombre del almacén es obligatorio.'); return; }
+  var resp=trim($('aResp').value);
+  if(editingAlmId){
+    var al=findAlm(editingAlmId);
+    al.nom=nom; al.resp=resp;
+    toast('Almacén actualizado.');
+  }else{
+    DB.alms.push({id:genId('a'),nom:nom,resp:resp});
+    toast('Almacén creado: '+nom);
+  }
+  save(); renderAll(); closeAlmModal();
+}
+function almDelete(id){
+  if(DB.alms.length<=1){ alert('Debe existir al menos un almacén.'); return; }
+  if(almHasMovs(id)){ alert('No se puede eliminar: tiene movimientos registrados. Traslada primero su stock y conserva el historial.'); return; }
+  var al=findAlm(id);
+  if(!confirm('¿Eliminar el almacén «'+al.nom+'»?')){ return; }
+  for(var i=0;i<DB.alms.length;i++){
+    if(DB.alms[i].id===id){ DB.alms.splice(i,1); break; }
+  }
+  save(); renderAll(); toast('Almacén eliminado.');
+}
+
+function nextNumIn(db, t){
+  db.seq[t]=(db.seq[t]||0)+1;
+  var pre = {I:'NEA-',S:'VAL-',D:'DEV-',T:'TRF-',Q:'SC-',O:'OC-',E:'SOB-',R:'IOB-'}[t];
+  return pre+pad(db.seq[t],4);
+}
+function nextNum(t){ return nextNumIn(DB, t); }
+function saveIngreso(){
+  var mid=PICK.ing;
+  if(!mid){ toast('Selecciona el material.'); return; }
+  var q=parseNum($('ingQ').value);
+  if(q<=0){ toast('Ingresa una cantidad válida.'); return; }
+  var f=$('ingF').value || todayISO();
+  var mov={ id:genId('v'), f:f, mid:mid, q:q, obs:trim($('ingObs').value) };
+
+  if(ingTipo==='C'){
+    var p=parseNum($('ingP').value);
+    if(p<=0 && !confirm('Precio unitario S/ 0.00. ¿Registrar igual?')){ return; }
+    mov.t='I'; mov.p=p;
+    mov.alm = multiAlm()? $('ingAlm').value : defaultAlmId();
+    if(PROV_PICK){ mov.pid=PROV_PICK; }
+    mov.gui=trim($('ingGui').value);
+    mov.fac=trim($('ingFac').value);
+  }else if(ingTipo==='D'){
+    mov.t='D';
+    mov.alm = multiAlm()? $('ingAlm').value : defaultAlmId();
+    mov.piso=$('devPiso').value;
+    mov.part=trim($('devPart').value);
+  }else{
+    if(!multiAlm()){ toast('Crea un segundo almacén en «Más» para trasladar.'); return; }
+    var o=$('trfFrom').value, dts=$('trfTo').value;
+    if(o===dts){ toast('El origen y el destino deben ser distintos.'); return; }
+    var disp=stockAlm(mid,o);
+    if(q>disp+EPS){
+      alert('Stock insuficiente en '+almName(o)+'. Disponible: '+qty(disp)+'.');
+      return;
+    }
+    mov.t='T'; mov.alm=o; mov.almTo=dts;
+  }
+  mov.num=nextNum(mov.t);
+  DB.movs.push(mov);
+  save(); renderAll();
+  $('ingQ').value=''; $('ingP').value=''; $('ingGui').value=''; $('ingFac').value=''; $('ingObs').value='';
+  toast(mov.num+' registrado ✓');
+  backupReminder();
+}
+function saveSalida(){
+  var mid=PICK.sal;
+  if(!mid){ toast('Selecciona el material.'); return; }
+  var q=parseNum($('salQ').value);
+  if(q<=0){ toast('Ingresa una cantidad válida.'); return; }
+  var alm = multiAlm()? $('salAlm').value : defaultAlmId();
+  var disp=stockAlm(mid,alm);
+  if(q>disp+EPS){
+    var mt=findMat(mid);
+    if(stockOf(mid)<q-EPS && mt){
+      var os=otherStock(mt.cod);
+      if(os.length){
+        var falta=q-stockOf(mid);
+        if(confirm('Stock insuficiente: en esta obra hay '+qty(stockOf(mid))+' '+mt.und+' y necesitas '+qty(q)+'.\n\n'
+          +'Saldo en otras obras: '+otherStockTxt(os)+'.\n\n¿Pedir prestado '+qty(Math.min(falta,os[0].q))+' '+mt.und+' a «'+os[0].nom+'»?')){
+          eoAsk(mid, falta, 'sal');
+        }
+        return;
+      }
+    }
+    alert('Stock insuficiente en '+almName(alm)+'. Disponible: '+qty(disp)+' '+(mt?mt.und:'')
+      +(multiAlm()?('. Total en obra: '+qty(stockOf(mid))+' — puedes trasladar entre almacenes.'):'. Registra primero el ingreso.'));
+    return;
+  }
+  var mov={
+    id:genId('v'), t:'S', f:($('salF').value||todayISO()), mid:mid, q:q, alm:alm,
+    piso:$('salPiso').value,
+    part:trim($('salPart').value),
+    sol:trim($('salSol').value),
+    obs:trim($('salObs').value)
+  };
+  mov.num=nextNum('S');
+  DB.movs.push(mov);
+  save(); renderAll();
+  $('salQ').value=''; $('salObs').value='';
+  toast(mov.num+' registrado ✓ <button class="linkbtn" style="color:#FFD65C;padding:0 0 0 8px" data-vale="'+mov.id+'">Ver vale</button>', 6000);
+  backupReminder();
+}
+function anular(movId){
+  var idx=-1, m=null;
+  for(var i=0;i<DB.movs.length;i++){ if(DB.movs[i].id===movId){ idx=i; m=DB.movs[i]; break; } }
+  if(idx<0){ return; }
+  if(m.t==='E' || m.t==='R'){ eoAnular(m); return; }
+  var extra = m.oc? ' Está vinculado a una OC; su avance de recepción se recalculará.' : '';
+  if(!confirm('¿Anular '+m.num+'? El stock y el kardex se recalcularán.'+extra)){ return; }
+  DB.movs.splice(idx,1);
+  save(); renderAll();
+  toast(m.num+' anulado.');
+}
+function backupReminder(){
+  if(DB.movs.length>0 && DB.movs.length%25===0){
+    setTimeout(function(){ toast('Llevas '+DB.movs.length+' movimientos: exporta un respaldo en «Más».'); },2600);
+  }
+}
+
+function newOC(){
+  var oc={ id:genId('o'), num:nextNum('Q'), f:todayISO(), estado:'COT',
+    items:[], cots:[], alm:defaultAlmId(), cond:'', obs:'' };
+  DB.ocs.push(oc);
+  save();
+  OC_SEL=oc.id;
+  renderAll();
+  showView('ocd');
+}
+function ocAddItem(){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='COT'){ return; }
+  var mid=PICK.oc;
+  if(!mid){ toast('Selecciona el material.'); return; }
+  var q=parseNum($('ocQ').value);
+  if(q<=0){ toast('Ingresa una cantidad válida.'); return; }
+  for(var i=0;i<oc.items.length;i++){
+    if(oc.items[i].mid===mid){ toast('Ese material ya está en la lista; quítalo para cambiar la cantidad.'); return; }
+  }
+  oc.items.push({mid:mid, q:q});
+  $('ocQ').value='';
+  pickClear('oc');
+  save(); renderOCDetail();
+}
+function ocDelItem(mid){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='COT'){ return; }
+  for(var i=0;i<oc.items.length;i++){
+    if(oc.items[i].mid===mid){ oc.items.splice(i,1); break; }
+  }
+  save(); renderOCDetail();
+}
+function ocDelCot(idx){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='COT'){ return; }
+  oc.cots.splice(idx,1);
+  save(); renderOCDetail();
+}
+function renderOCCotTitles(oc){
+  var cards=$('ocdCots').getElementsByClassName('cotcard');
+  for(var j=0;j<oc.cots.length && j<cards.length;j++){
+    var pv=findProv(oc.cots[j].pid);
+    var tt=cotTotal(oc,oc.cots[j]);
+    var ct=cards[j].getElementsByClassName('ct')[0];
+    if(ct){
+      ct.innerHTML=(pv?esc(pv.nom):'—')
+        +(tt.ok?(' — <span class="mono">'+money(tt.total)+'</span>'):' — <span style="color:#8A6400">precios incompletos</span>')
+        +(oc.estado==='COT'?(' <button type="button" class="linkbtn" data-occotdel="'+j+'" style="float:right;padding:0">Quitar</button>'):'');
+    }
+  }
+}
+function renderOCActionsOnly(oc){
+  if(oc.estado!=='COT'){ return; }
+  var act='';
+  for(var j=0;j<oc.cots.length;j++){
+    var t2=cotTotal(oc,oc.cots[j]);
+    if(t2.ok && oc.items.length){
+      var pv2=findProv(oc.cots[j].pid);
+      act+='<button class="btn blue sm" data-ocadj="'+j+'">Adjudicar a '+esc(pv2?pv2.nom:'—')+' — '+money(t2.total)+'</button>';
+    }
+  }
+  act+='<button class="btn ghost sm" id="bOcDel">Eliminar solicitud</button>';
+  $('ocdActions').innerHTML=act;
+}
+function ocSetPrice(idx, mid, v){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='COT'){ return; }
+  var cot=oc.cots[idx];
+  if(!cot){ return; }
+  if(!cot.pr){ cot.pr={}; }
+  var s=trim(v);
+  if(s===''){ delete cot.pr[mid]; }
+  else{ cot.pr[mid]=parseNum(s); }
+  save();
+  renderOCComp(oc);
+  renderOCActionsOnly(oc);
+  renderOCCotTitles(oc);
+}
+function ocAdjudicar(idx){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='COT'){ return; }
+  var cot=oc.cots[idx];
+  if(!cot){ return; }
+  var t=cotTotal(oc,cot);
+  if(!t.ok || !oc.items.length){ toast('Completa los precios de todos los ítems para adjudicar.'); return; }
+  var pv=findProv(cot.pid);
+  var b=bestCot(oc);
+  var warn = (b && b.idx!==idx)? ' OJO: no es la de menor total ('+money(b.total)+' de otro proveedor).' : '';
+  if(!confirm('¿Adjudicar a '+(pv?pv.nom:'—')+' por '+money(t.total)+' y emitir la OC?'+warn)){ return; }
+  oc.win=cot.pid;
+  oc.fAdj=todayISO();
+  oc.estado='ADJ';
+  oc.numOC=nextNum('O');
+  save(); renderAll();
+  toast(oc.numOC+' emitida ✓ <button class="linkbtn" style="color:#FFD65C;padding:0 0 0 8px" data-ocdoc="'+oc.id+'">Ver OC</button>', 6000);
+}
+function ocAnular(){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='ADJ' || ocHasRec(oc.id)){ return; }
+  if(!confirm('¿Anular la '+ocNumShow(oc)+'? Quedará en el historial como anulada.')){ return; }
+  oc.estado='ANU';
+  save(); renderAll();
+  toast('OC anulada.');
+}
+function ocDelete(){
+  var oc=findOC(OC_SEL);
+  if(!oc){ return; }
+  if(oc.estado==='ADJ' || ocHasRec(oc.id)){ alert('No se puede eliminar una OC emitida con recepciones.'); return; }
+  if(!confirm('¿Eliminar '+ocNumShow(oc)+' definitivamente?')){ return; }
+  for(var i=0;i<DB.ocs.length;i++){
+    if(DB.ocs[i].id===oc.id){ DB.ocs.splice(i,1); break; }
+  }
+  OC_SEL=null;
+  save(); renderAll(); showView('oc');
+}
+
+function openRecModal(){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='ADJ'){ return; }
+  var pv=findProv(oc.win);
+  $('recInfo').innerHTML=esc(ocNumShow(oc))+' · '+(pv?esc(pv.nom):'');
+  $('recF').value=todayISO();
+  fillAlmSelect($('recAlm'), false);
+  if(oc.alm && findAlm(oc.alm)){ $('recAlm').value=oc.alm; }
+  $('recGui').value=''; $('recFac').value='';
+  var cot=winCot(oc);
+  var h='';
+  for(var i=0;i<oc.items.length;i++){
+    var it=oc.items[i], mt=findMat(it.mid);
+    var pend=it.q - recOf(oc.id,it.mid);
+    if(pend<EPS){ pend=0; }
+    h+='<div class="cotline"><div class="cn">'+(mt?esc(mt.nom):'—')
+      +'<br><span style="color:#6B7076;font-size:11px">pend. '+qty(pend)+' '+(mt?esc(mt.und):'')
+      +' · S/ '+num(cot&&cot.pr?(cot.pr[it.mid]||0):0,2)+'</span></div>'
+      +'<input type="number" step="any" min="0" inputmode="decimal" data-recmid="'+it.mid+'" value="'+(pend>0?pend:'')+'"'+(pend<=0?' readonly':'')+'>'
+      +'</div>';
+  }
+  $('recItems').innerHTML=h;
+  $('recModal').className='modal np';
+}
+function closeRecModal(){ $('recModal').className='modal np hidden'; }
+function saveRec(){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='ADJ'){ return; }
+  var cot=winCot(oc);
+  if(!cot){ return; }
+  var f=$('recF').value||todayISO();
+  var alm=$('recAlm').value||defaultAlmId();
+  var gui=trim($('recGui').value), fac=trim($('recFac').value);
+  var inputs=$('recItems').getElementsByTagName('input');
+  var plan=[], i;
+  for(i=0;i<inputs.length;i++){
+    var mid=inputs[i].getAttribute('data-recmid');
+    if(!mid){ continue; }
+    var v=parseNum(inputs[i].value);
+    if(v<=0){ continue; }
+    var pend=0;
+    for(var j=0;j<oc.items.length;j++){
+      if(oc.items[j].mid===mid){ pend=oc.items[j].q - recOf(oc.id,mid); break; }
+    }
+    if(v>pend+EPS){
+      var mt=findMat(mid);
+      alert('La cantidad de '+(mt?mt.nom:'ítem')+' excede lo pendiente ('+qty(pend)+').');
+      return;
+    }
+    plan.push({mid:mid, q:v});
+  }
+  if(!plan.length){ toast('Indica al menos una cantidad recibida.'); return; }
+  for(i=0;i<plan.length;i++){
+    var mov={
+      id:genId('v'), t:'I', f:f, mid:plan[i].mid, q:plan[i].q,
+      p:(cot.pr? (cot.pr[plan[i].mid]||0) : 0),
+      pid:oc.win, alm:alm, gui:gui, fac:fac,
+      oc:oc.id, ocn:ocNumShow(oc), obs:''
+    };
+    mov.num=nextNum('I');
+    DB.movs.push(mov);
+  }
+  save(); renderAll(); closeRecModal();
+  var st=ocEstadoInfo(oc);
+  toast('Recepción registrada ✓ ('+st.label+')', 3200);
+  backupReminder();
+}
+
+function docFooterBrand(){
+  var bl=brandLine();
+  return bl?('<div class="sh-brand">'+esc(bl)+'</div>'):'';
+}
+function showVale(movId){
+  var m=null;
+  for(var i=0;i<DB.movs.length;i++){ if(DB.movs[i].id===movId){ m=DB.movs[i]; break; } }
+  if(!m || m.t!=='S'){ return; }
+  var mt=findMat(m.mid);
+  var al=findAlm(m.alm);
+  var resp=(al && al.resp)? al.resp : (DB.encargado||'');
+  var html='<div class="sh-top">'
+    +'<div class="sh-obra">'+esc(DB.obra||'Obra')+'</div>'
+    +(DB.empresa?('<div class="sh-emp">'+esc(DB.empresa)+'</div>'):'')
+    +'<div class="sh-doc"><span class="sh-tit">VALE DE SALIDA DE ALMACÉN</span>'
+    +'<span><span class="chip-doc mono" style="background:#FBE9E5;color:#BC3A2B">'+esc(m.num)+'</span> &nbsp;'+dmy(m.f)+'</span></div>'
+    +'</div>'
+    +'<table>'
+    +'<tr><td class="k">Material</td><td><b>'+(mt?esc(mt.cod)+' — '+esc(mt.nom):'')+'</b></td></tr>'
+    +'<tr><td class="k">Cantidad</td><td><b>'+qty(m.q)+' '+(mt?esc(mt.und):'')+'</b></td></tr>'
+    +(multiAlm()?('<tr><td class="k">Almacén</td><td>'+esc(almName(m.alm))+'</td></tr>'):'')
+    +'<tr><td class="k">Destino</td><td>'+esc(m.piso||'')+'</td></tr>'
+    +'<tr><td class="k">Partida</td><td>'+esc(m.part||'—')+'</td></tr>'
+    +'<tr><td class="k">Solicitante</td><td>'+esc(m.sol||'—')+'</td></tr>'
+    +'<tr><td class="k">Observación</td><td>'+esc(m.obs||'—')+'</td></tr>'
+    +'</table>'
+    +'<div class="firmas"><div>Entregado — Almacenero/a'+(resp?('<br>'+esc(resp)):'')+'</div><div>Recibido — Solicitante</div></div>'
+    +docFooterBrand();
+  $('docBody').innerHTML=html;
+  $('docModal').className='modal';
+}
+function showOCdoc(ocId){
+  var oc=findOC(ocId);
+  if(!oc || oc.estado==='COT'){ return; }
+  var pv=findProv(oc.win);
+  var cot=winCot(oc);
+  var al=findAlm(oc.alm);
+  var resp=(al && al.resp)? al.resp : (DB.encargado||'');
+  var rows='', tot=0;
+  for(var i=0;i<oc.items.length;i++){
+    var it=oc.items[i], mt=findMat(it.mid);
+    var p=(cot&&cot.pr)? (cot.pr[it.mid]||0) : 0;
+    var sub=it.q*p;
+    tot+=sub;
+    rows+='<tr><td>'+(mt?esc(mt.cod):'')+'</td><td>'+(mt?esc(mt.nom):'')+'</td>'
+      +'<td>'+(mt?esc(mt.und):'')+'</td><td class="r">'+qty(it.q)+'</td>'
+      +'<td class="r">'+num(p,2)+'</td><td class="r">'+num(sub,2)+'</td></tr>';
+  }
+  var provInfo='';
+  if(pv){
+    provInfo='<b>'+esc(pv.nom)+'</b>'
+      +(pv.ruc?('<br>RUC '+esc(pv.ruc)):'')
+      +((pv.dir||pv.ciu)?('<br>'+esc([pv.dir,pv.ciu].join(pv.dir&&pv.ciu?' — ':''))):'')
+      +(pv.tel?('<br>Tel. '+esc(pv.tel)):'')
+      +(pv.con?('<br>Att. '+esc(pv.con)):'');
+  }
+  var html='<div class="sh-top">'
+    +'<div class="sh-obra">'+esc(DB.obra||'Obra')+'</div>'
+    +(DB.empresa?('<div class="sh-emp">'+esc(DB.empresa)+'</div>'):'')
+    +'<div class="sh-doc"><span class="sh-tit">ORDEN DE COMPRA</span>'
+    +'<span><span class="chip-doc mono" style="background:#E3ECF9;color:#1F5FA8">'+esc(ocNumShow(oc))+'</span> &nbsp;'+dmy(oc.fAdj||oc.f)+'</span></div>'
+    +'</div>'
+    +'<table style="margin-bottom:10px"><tr><td class="k">Proveedor</td><td>'+provInfo+'</td></tr>'
+    +(oc.cond?('<tr><td class="k">Condiciones</td><td>'+esc(oc.cond)+'</td></tr>'):'')
+    +'<tr><td class="k">Entregar en</td><td>'+esc(almName(oc.alm))+(DB.obra?(' — '+esc(DB.obra)):'')+'</td></tr>'
+    +(oc.obs?('<tr><td class="k">Observación</td><td>'+esc(oc.obs)+'</td></tr>'):'')
+    +'</table>'
+    +'<table><tr><th>Cód.</th><th>Descripción</th><th>Und.</th><th class="r">Cant.</th><th class="r">P.U. S/</th><th class="r">Subtotal S/</th></tr>'
+    +rows
+    +'<tr><td colspan="5" class="r" style="font-weight:800">TOTAL S/</td><td class="r" style="font-weight:800">'+num(tot,2)+'</td></tr>'
+    +'</table>'
+    +'<div class="firmas"><div>Solicitado — Almacenero/a'+(resp?('<br>'+esc(resp)):'')+'</div>'
+    +'<div>Autorizado'+((DB.brand&&DB.brand.nom)?('<br>'+esc(DB.brand.nom)+((DB.brand.cip)?(' — CIP '+esc(DB.brand.cip)):'')):'')+'</div></div>'
+    +docFooterBrand();
+  $('docBody').innerHTML=html;
+  $('docModal').className='modal';
+}
+
+function csvField(v){
+  v=(v===undefined||v===null)?'':''+v;
+  if(v.indexOf(';')>-1 || v.indexOf('"')>-1 || v.indexOf('\n')>-1){
+    v='"'+v.replace(/"/g,'""')+'"';
+  }
+  return v;
+}
+function csvNum(n,d){ return n.toFixed(d).replace('.',','); }
+function dl(name, mime, content){
+  try{
+    var blob=new Blob([content],{type:mime});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(a.href); },600);
+  }catch(e){
+    alert('Tu navegador no permitió la descarga. Prueba en Chrome (Android) o Safari (iOS).');
+  }
+}
+function csvStock(){
+  var head='\uFEFFCódigo;Descripción;Unidad';
+  var i,j;
+  if(multiAlm()){
+    for(j=0;j<DB.alms.length;j++){ head+=';'+csvField(DB.alms[j].nom); }
+  }
+  head+=';Stock total;Stock mín;Costo prom (S/);Valorizado (S/)\n';
+  var out=head;
+  var list=DB.mats.slice(0);
+  list.sort(function(a,b){ return a.cod<b.cod?-1:1; });
+  for(i=0;i<list.length;i++){
+    var mt=list[i];
+    out+=csvField(mt.cod)+';'+csvField(mt.nom)+';'+csvField(mt.und);
+    if(multiAlm()){
+      for(j=0;j<DB.alms.length;j++){ out+=';'+csvNum(stockAlm(mt.id,DB.alms[j].id),2); }
+    }
+    out+=';'+csvNum(stockOf(mt.id),2)+';'+csvNum(mt.min||0,2)+';'
+      +csvNum(avgOf(mt.id),2)+';'+csvNum(valOf(mt.id),2)+'\n';
+  }
+  dl('stock_valorizado_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
+}
+function csvMovs(){
+  var out='\uFEFFFecha;Documento;Tipo;Código;Descripción;Unidad;Cantidad;Costo unit (S/);Almacén;Alm. destino;OC;Destino/Origen;Partida;Solicitante;Proveedor;RUC;Guía;Factura;Observación\n';
+  for(var i=0;i<STATE.rows.length;i++){
+    var r=STATE.rows[i], m=r.m, mt=findMat(m.mid);
+    var tipo = {I:'INGRESO',S:'SALIDA',T:'TRASLADO',D:'DEVOLUCIÓN',E:'SALIDA A OTRA OBRA',R:'INGRESO DE OTRA OBRA'}[m.t]||m.t;
+    if(m.t==='E' || m.t==='R'){ tipo+=' ('+eoKind(m.eo).toUpperCase()+')'; }
+    var cu = (m.t==='I' || m.t==='R') ? (m.p||0) : r.avg;
+    var pv = m.pid? findProv(m.pid) : null;
+    out+=dmy(m.f)+';'+csvField(m.num)+';'+tipo+';'
+      +csvField(mt?mt.cod:'')+';'+csvField(mt?mt.nom:'')+';'+csvField(mt?mt.und:'')+';'
+      +csvNum(m.q,2)+';'+csvNum(cu,2)+';'
+      +csvField(almName(m.alm))+';'+csvField(m.almTo?almName(m.almTo):'')+';'
+      +csvField(m.ocn||'')+';'
+      +csvField(m.piso||(m.obra?obraLabel(m.obra,m.obraNom):''))+';'+csvField(m.part||'')+';'+csvField(m.sol||'')+';'
+      +csvField(provName(m))+';'+csvField(pv?(pv.ruc||''):'')+';'
+      +csvField(m.gui||'')+';'+csvField(m.fac||'')+';'+csvField(m.obs||'')+'\n';
+  }
+  dl('movimientos_almacen_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
+}
+function csvKardex(){
+  var mid=PICK.kar;
+  if(!mid){ toast('Selecciona un material.'); return; }
+  var mt=findMat(mid);
+  var out='\uFEFFKardex valorizado (prom. ponderado);'+csvField(mt.cod+' — '+mt.nom)+';Unidad: '+mt.und+'\n';
+  out+='Fecha;Documento;Detalle;Entrada;Salida;Saldo;Costo prom (S/);Valorizado (S/)\n';
+  for(var i=0;i<STATE.rows.length;i++){
+    var r=STATE.rows[i];
+    if(r.mid!==mid){ continue; }
+    out+=dmy(r.f)+';'+csvField(r.num)+';'+csvField(movDetail(r.m,mt))+';'
+      +(r.ent?csvNum(r.ent,2):'')+';'+(r.sal?csvNum(r.sal,2):'')+';'
+      +csvNum(r.saldo,2)+';'+csvNum(r.avg,2)+';'+csvNum(r.valSaldo,2)+'\n';
+  }
+  dl('kardex_'+mt.cod+'_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
+}
+function csvPrecios(){
+  var mid=PICK.kar;
+  if(!mid){ return; }
+  var mt=findMat(mid);
+  var hist=priceHistory(mid);
+  var out='\uFEFFHistorial de precios;'+csvField(mt.cod+' — '+mt.nom)+'\n';
+  out+='Fecha;Proveedor;Cantidad;Precio unit (S/);Variación %\n';
+  for(var i=0;i<hist.length;i++){
+    var h=hist[i];
+    out+=dmy(h.f)+';'+csvField(h.prov)+';'+csvNum(h.q,2)+';'+csvNum(h.p,2)+';'
+      +((h.delta===null||h.delta===undefined)?'':csvNum(h.delta,1))+'\n';
+  }
+  dl('precios_'+mt.cod+'_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
+}
+function csvProvs(){
+  var out='\uFEFFRUC;Razón social;Contacto;Teléfono;Dirección;Ciudad/Ubicación;Observación;N° compras;Total comprado (S/);Última compra\n';
+  var list=DB.provs.slice(0);
+  list.sort(function(a,b){ return (''+a.nom).toLowerCase()<(''+b.nom).toLowerCase()?-1:1; });
+  for(var i=0;i<list.length;i++){
+    var p=list[i], st=provStats(p.id);
+    out+=csvField(p.ruc||'')+';'+csvField(p.nom)+';'+csvField(p.con||'')+';'+csvField(p.tel||'')+';'
+      +csvField(p.dir||'')+';'+csvField(p.ciu||'')+';'+csvField(p.obs||'')+';'
+      +st.n+';'+csvNum(st.tot,2)+';'+dmy(st.last)+'\n';
+  }
+  dl('proveedores_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
+}
+function csvOCs(){
+  var out='\uFEFFN°;Fecha;Estado;Proveedor;RUC;Ítems;Total (S/);Recibido %\n';
+  for(var i=0;i<DB.ocs.length;i++){
+    var oc=DB.ocs[i];
+    var st=ocEstadoInfo(oc);
+    var pv=oc.win? findProv(oc.win) : null;
+    var b=bestCot(oc);
+    var tot = oc.estado==='ADJ'? ocTotalAdj(oc) : (b? b.total : 0);
+    var pct='';
+    if(oc.estado==='ADJ' && oc.items.length){
+      var qT=0,rT=0;
+      for(var j=0;j<oc.items.length;j++){
+        qT+=oc.items[j].q;
+        rT+=recOf(oc.id,oc.items[j].mid);
+      }
+      pct = qT>EPS? csvNum(rT/qT*100,0) : '';
+    }
+    out+=csvField(ocNumShow(oc))+';'+dmy(oc.fAdj||oc.f)+';'+csvField(st.label)+';'
+      +csvField(pv?pv.nom:'')+';'+csvField(pv?(pv.ruc||''):'')+';'
+      +oc.items.length+';'+csvNum(tot,2)+';'+pct+'\n';
+  }
+  dl('ordenes_compra_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
+}
+/* ---------- préstamos y transferencias entre obras ---------- */
+function eoKind(k){ return k==='P'? 'Préstamo' : (k==='D'? 'Devolución de préstamo' : 'Transferencia'); }
+function obraLabel(id, fallback){
+  var pr=findProj(id);
+  if(pr){ return pr.nom; }
+  return (fallback||'otra obra')+(id?' (ya no existe)':'');
+}
+function codKey(c){ return trim(c).toUpperCase(); }
+function buildOther(id, db){
+  var st=computeAll(db), byCod={};
+  for(var i=0;i<db.mats.length;i++){
+    var mt=db.mats[i], g=st.g[mt.id];
+    byCod[codKey(mt.cod)]={ mid:mt.id, q:(g? g.q : 0), avg:((g && g.q>EPS)? g.val/g.q : 0), und:mt.und, nom:mt.nom };
+  }
+  var pr=findProj(id);
+  return { id:id, nom:(pr? pr.nom : projName(db)), db:db, st:st, byCod:byCod };
+}
+function loadOthers(cb){
+  var tok=++othersTok;
+  OTHERS={};
+  if(!persist || !META || META.projects.length<2){ if(cb){ cb(); } return; }
+  var list=META.projects.slice(0), i=0, acc={};
+  function next(){
+    if(tok!==othersTok){ return; }
+    if(i>=list.length){
+      OTHERS=acc;
+      renderAll();
+      if(!$('v-eo').className.match(/hidden/)){ eoRender(); }
+      if(!$('v-rep').className.match(/hidden/)){ renderRep(); }
+      if(cb){ cb(); }
+      return;
+    }
+    var pr=list[i++];
+    if(pr.id===CUR){ next(); return; }
+    stGet(pKey(pr.id), function(err, val){
+      if(!err && val){ acc[pr.id]=buildOther(pr.id, migrate(val)); }
+      next();
+    });
+  }
+  next();
+}
+function otherStock(cod){
+  var out=[], k=codKey(cod);
+  if(!META){ return out; }
+  for(var i=0;i<META.projects.length;i++){
+    var o=OTHERS[META.projects[i].id];
+    if(!o){ continue; }
+    var e=o.byCod[k];
+    if(e && e.q>EPS){ out.push({ id:o.id, nom:o.nom, q:e.q, und:e.und, mid:e.mid, avg:e.avg }); }
+  }
+  out.sort(function(a,b){ return b.q-a.q; });
+  return out;
+}
+function otherStockTxt(list){
+  var parts=[];
+  for(var i=0;i<list.length;i++){ parts.push(list[i].nom+': '+qty(list[i].q)+' '+list[i].und); }
+  return parts.join(' · ');
+}
+function loansOf(db){
+  var map={}, order=[], i, m;
+  for(i=0;i<db.movs.length;i++){
+    m=db.movs[i];
+    if(m.eo==='P' && (m.t==='E' || m.t==='R') && m.lk){
+      map[m.lk]={ lk:m.lk, dir:(m.t==='E'?'out':'in'), obra:m.obra, obraNom:m.obraNom, mid:m.mid, q:m.q, ret:0, f:m.f, num:m.num, alm:m.alm };
+      order.push(m.lk);
+    }
+  }
+  for(i=0;i<db.movs.length;i++){
+    m=db.movs[i];
+    if(m.eo==='D' && m.ref && map[m.ref]){ map[m.ref].ret+=m.q; }
+  }
+  var out=[];
+  for(i=0;i<order.length;i++){
+    var l=map[order[i]];
+    l.pend=l.q-l.ret;
+    if(l.pend<EPS){ l.pend=0; }
+    out.push(l);
+  }
+  return out;
+}
+function loanByLk(db, lk){
+  var lo=loansOf(db);
+  for(var i=0;i<lo.length;i++){ if(lo[i].lk===lk){ return lo[i]; } }
+  return null;
+}
+function stSetMany(pairs, cb){
+  cb=once(cb||function(){});
+  if(ST.mode==='idb'){
+    try{
+      var tx=ST.db.transaction(IDB_STORE,'readwrite'), os=tx.objectStore(IDB_STORE);
+      for(var i=0;i<pairs.length;i++){ os.put(pairs[i][1], pairs[i][0]); }
+      tx.oncomplete=function(){ cb(null); };
+      tx.onerror=function(){ cb(tx.error||'error'); };
+      tx.onabort=function(){ cb(tx.error||'abort'); };
+    }catch(e){ cb(e); }
+  }else if(ST.mode==='ls'){
+    var bak=[], j;
+    try{
+      for(j=0;j<pairs.length;j++){ bak.push(localStorage.getItem(LS_PREFIX+pairs[j][0])); }
+      for(j=0;j<pairs.length;j++){ localStorage.setItem(LS_PREFIX+pairs[j][0], JSON.stringify(pairs[j][1])); }
+      cb(null);
+    }catch(e2){
+      for(j=0;j<bak.length;j++){ try{ if(bak[j]!==null){ localStorage.setItem(LS_PREFIX+pairs[j][0], bak[j]); } }catch(e3){} }
+      cb(e2);
+    }
+  }else{ cb(null); }
+}
+/* origen/destino según la dirección: 'S' = esta obra entrega, 'R' = esta obra recibe */
+function eoSrc(){ return EO.dir==='S'? {db:DB, st:STATE, id:CUR} : (OTHERS[EO.other]? {db:OTHERS[EO.other].db, st:OTHERS[EO.other].st, id:EO.other} : null); }
+function eoDst(){ return EO.dir==='S'? (OTHERS[EO.other]? {db:OTHERS[EO.other].db, st:OTHERS[EO.other].st, id:EO.other} : null) : {db:DB, st:STATE, id:CUR}; }
+function matIn(db, id){
+  for(var i=0;i<db.mats.length;i++){ if(db.mats[i].id===id){ return db.mats[i]; } }
+  return null;
+}
+function stQ(st, mid, alm){
+  var s = alm? st.a[mid+'|'+alm] : st.g[mid];
+  return s? s.q : 0;
+}
+function stAvg(st, mid){ var s=st.g[mid]; return (s && s.q>EPS)? s.val/s.q : 0; }
+function eoSetDir(d){
+  if(EO.ref){ return; }
+  EO.dir=d; EO.mid=null;
+  eoRender();
+}
+function eoSetMode(k){
+  if(EO.ref){ return; }
+  EO.mode=k;
+  eoRender();
+}
+function eoCancelDev(){
+  EO.ref=null; EO.mid=null; EO.mode='P';
+  $('eoQ').value='';
+  eoRender();
+}
+function eoAsk(localMid, need, back){
+  var mt=findMat(localMid);
+  if(!mt){ return; }
+  var os=otherStock(mt.cod);
+  if(!os.length){ toast('Ninguna otra obra tiene saldo de '+mt.nom+'.'); return; }
+  EO={ dir:'R', mode:'P', other:os[0].id, mid:os[0].mid, ref:null };
+  eoBackTo = back || (OC_SEL? 'oc' : 'ing');
+  $('eoQ').value = need>EPS? Math.min(need, os[0].q) : '';
+  $('eoObs').value='';
+  showView('eo');
+}
+function eoStartDev(lk){
+  var l=loanByLk(DB, lk);
+  if(!l || l.pend<=EPS){ return; }
+  if(!OTHERS[l.obra]){ alert('La otra obra ('+obraLabel(l.obra,l.obraNom)+') no está disponible en este teléfono.'); return; }
+  EO={ dir:(l.dir==='in'?'S':'R'), mode:'D', other:l.obra, mid:null, ref:lk };
+  if(l.dir==='in'){ EO.mid=l.mid; }
+  else{
+    /* la obra que devuelve es la otra: su material es el de su ingreso del préstamo */
+    var od=OTHERS[l.obra].db;
+    for(var i=0;i<od.movs.length;i++){ if(od.movs[i].lk===lk){ EO.mid=od.movs[i].mid; break; } }
+  }
+  $('eoQ').value=l.pend;
+  $('eoObs').value='';
+  showView('eo');
+}
+function eoRender(){
+  var others=[], i;
+  for(i=0;i<META.projects.length;i++){ if(META.projects[i].id!==CUR){ others.push(META.projects[i]); } }
+  if(!persist || !others.length){
+    $('eoNone').className='empty';
+    $('eoForm').className='card hidden';
+    renderEoLoans();
+    return;
+  }
+  $('eoNone').className='empty hidden';
+  $('eoForm').className='card';
+  if(!EO.other || !findProj(EO.other) || EO.other===CUR){ EO.other=others[0].id; EO.mid=null; }
+  var html='';
+  for(i=0;i<others.length;i++){
+    html+='<option value="'+esc(others[i].id)+'">'+esc(others[i].nom)+(OTHERS[others[i].id]?'':' (cargando…)')+'</option>';
+  }
+  $('eoObra').innerHTML=html;
+  $('eoObra').value=EO.other;
+  $('eoObra').disabled=!!EO.ref;
+  $('eoDirR').className = EO.dir==='R'?'on':'';
+  $('eoDirS').className = EO.dir==='S'?'on':'';
+  $('eoModeP').className = EO.mode==='P'?'on':'';
+  $('eoModeT').className = EO.mode==='T'?'on':'';
+  $('eoObraLbl').innerHTML = EO.dir==='R'? 'Obra que entrega' : 'Obra que recibe';
+  $('eoModeSeg').className = EO.ref? 'seg hidden' : 'seg';
+  $('eoModeNote').innerHTML = EO.ref? '' : (EO.mode==='P'
+    ? 'Préstamo: queda pendiente de devolución y se controla en «Préstamos pendientes».'
+    : 'Transferencia: el saldo pasa de forma definitiva, sin devolución.');
+  if(!$('eoF').value){ $('eoF').value=todayISO(); }
+
+  var src=eoSrc(), dst=eoDst();
+  if(EO.ref){
+    var l=loanByLk(DB, EO.ref);
+    $('eoDevBox').className='eoinfo';
+    $('eoDevBox').innerHTML='Devolución del préstamo <b>'+esc(l? l.num : '')+'</b>'+(l?(' · pendiente <b>'+qty(l.pend)+'</b>'):'')
+      +' <button type="button" id="eoDevX">Cancelar devolución</button>';
+  }else{
+    $('eoDevBox').className='eoinfo hidden';
+  }
+  fillAlmSel($('eoAlmS'), src? src.db.alms : []);
+  fillAlmSel($('eoAlmD'), dst? dst.db.alms : []);
+  eoChip();
+  var lbl = EO.ref? 'Registrar devolución' : (EO.mode==='P'? 'Registrar préstamo' : 'Registrar transferencia');
+  $('btnEo').innerHTML = lbl;
+  renderEoLoans();
+}
+function fillAlmSel(el, alms){
+  var cur=el.value, html='', ok=false;
+  for(var i=0;i<alms.length;i++){
+    html+='<option value="'+esc(alms[i].id)+'">'+esc(alms[i].nom)+'</option>';
+    if(alms[i].id===cur){ ok=true; }
+  }
+  el.innerHTML=html;
+  if(ok){ el.value=cur; }
+}
+function eoChip(){
+  var src=eoSrc();
+  var mt = (src && EO.mid)? matIn(src.db, EO.mid) : null;
+  if(!mt){
+    EO.mid=null;
+    $('pc-eo').className='pick-chip hidden';
+    $('pw-eo').className = EO.ref? 'hidden' : '';
+    $('eoHint').innerHTML = src? '' : 'Cargando datos de la otra obra…';
+    return;
+  }
+  $('pc-eo').className='pick-chip';
+  $('pw-eo').className='hidden';
+  $('eoClr').className = EO.ref? 'chg hidden' : 'chg';
+  $('pcc-eo').innerHTML=esc(mt.cod);
+  $('pcn-eo').innerHTML=esc(mt.nom);
+  var alm=$('eoAlmS').value;
+  $('pcs-eo').innerHTML='Saldo en '+esc(EO.dir==='S'? projName(DB) : obraLabel(EO.other))+': <b>'+qty(stQ(src.st, mt.id))+' '+esc(mt.und)+'</b>';
+  $('eoHint').innerHTML='Disponible en el almacén de salida: <b>'+qty(stQ(src.st, mt.id, alm))+' '+esc(mt.und)+'</b> · costo prom. <b>'+money(stAvg(src.st, mt.id))+'</b> (pasa a este costo)';
+}
+function eoSuggest(){
+  var src=eoSrc(), box=$('ps-eo');
+  if(!src){ box.innerHTML='<div class="nores">Cargando datos de la otra obra…</div>'; return; }
+  var qstr=($('pi-eo').value||'').toLowerCase();
+  var list=src.db.mats.slice(0);
+  list.sort(function(a,b){ return a.cod<b.cod?-1:1; });
+  var html='', n=0, rest=0, lim=LIM['sug-eo']||8;
+  for(var i=0;i<list.length;i++){
+    var mt=list[i], q=stQ(src.st, mt.id);
+    if(q<=EPS){ continue; }
+    if(qstr && (mt.cod+' '+mt.nom).toLowerCase().indexOf(qstr)===-1){ continue; }
+    if(n>=lim){ rest++; continue; }
+    html+='<button type="button" data-eomid="'+esc(mt.id)+'"><span class="cod">'+esc(mt.cod)+'</span><b>'+esc(mt.nom)+'</b>'
+      +'<span class="s2">Saldo: '+qty(q)+' '+esc(mt.und)+' · prom '+money(stAvg(src.st, mt.id))+'</span></button>';
+    n++;
+  }
+  if(!html){ html='<div class="nores">Sin materiales con saldo'+(qstr?' que coincidan':'')+' en la obra que entrega.</div>'; }
+  box.innerHTML=html+moreHTML('sug-eo', rest);
+}
+function eoMatchDst(dstDb, srcMat){
+  var byId=matIn(dstDb, srcMat.id);
+  if(byId && codKey(byId.cod)===codKey(srcMat.cod)){ return byId; }
+  var k=codKey(srcMat.cod);
+  for(var i=0;i<dstDb.mats.length;i++){ if(codKey(dstDb.mats[i].cod)===k){ return dstDb.mats[i]; } }
+  var nm={ id:(byId? genId('m') : srcMat.id), cod:srcMat.cod, nom:srcMat.nom, und:srcMat.und, min:0 };
+  dstDb.mats.push(nm);
+  return nm;
+}
+function eoSnap(db){ return { db:db, movs:db.movs.slice(0), mats:db.mats.slice(0), seq:JSON.parse(JSON.stringify(db.seq)) }; }
+function eoRestore(sn){ sn.db.movs=sn.movs; sn.db.mats=sn.mats; sn.db.seq=sn.seq; }
+function eoFail(err, snaps, otherId){
+  for(var i=0;i<snaps.length;i++){ eoRestore(snaps[i]); }
+  if(OTHERS[otherId]){ OTHERS[otherId]=buildOther(otherId, OTHERS[otherId].db); }
+  renderAll();
+  if(!$('v-eo').className.match(/hidden/)){ eoRender(); }
+  var quota = err && (err.name==='QuotaExceededError' || err.code===22);
+  alert('No se pudo guardar la operación entre obras'+(quota?' (sin espacio en el teléfono)':'')+'. Se deshizo en ambas obras; no se registró nada.');
+}
+function eoSave(){
+  var src=eoSrc(), dst=eoDst();
+  if(!src || !dst){ toast('Espera: cargando datos de la otra obra.'); return; }
+  var smat = EO.mid? matIn(src.db, EO.mid) : null;
+  if(!smat){ toast('Selecciona el material.'); return; }
+  var q=parseNum($('eoQ').value);
+  if(q<=0){ toast('Ingresa una cantidad válida.'); return; }
+  var almS=$('eoAlmS').value, almD=$('eoAlmD').value;
+  if(!almS || !almD){ toast('Selecciona los almacenes.'); return; }
+  var disp=stQ(src.st, smat.id, almS);
+  if(q>disp+EPS){ alert('Saldo insuficiente en el almacén de salida. Disponible: '+qty(disp)+' '+smat.und+'.'); return; }
+  var mode=EO.mode, ref=null;
+  if(EO.ref){
+    var l=loanByLk(DB, EO.ref);
+    if(!l){ alert('No se encontró el préstamo.'); return; }
+    if(q>l.pend+EPS){ alert('La devolución excede lo pendiente ('+qty(l.pend)+').'); return; }
+    mode='D'; ref=EO.ref;
+  }
+  var otherId=EO.other, otherDb=OTHERS[otherId].db;
+  var srcName = src.id===CUR? projName(DB) : obraLabel(src.id);
+  var dstName = dst.id===CUR? projName(DB) : obraLabel(dst.id);
+  var msg=eoKind(mode)+': '+qty(q)+' '+smat.und+' de '+smat.nom+'\n'+srcName+' → '+dstName+'\nCosto unitario: '+money(stAvg(src.st, smat.id))+' (promedio de la obra que entrega).\n¿Registrar?';
+  if(!confirm(msg)){ return; }
+
+  var avg=stAvg(src.st, smat.id);
+  var snaps=[eoSnap(DB), eoSnap(otherDb)];
+  var dmat=eoMatchDst(dst.db, smat);
+  var f=$('eoF').value||todayISO(), obs=trim($('eoObs').value), lk=genId('k');
+  var ms={ id:genId('v'), t:'E', f:f, mid:smat.id, q:q, alm:almS, eo:mode, obra:dst.id, obraNom:dstName, lk:lk, obs:obs };
+  var mr={ id:genId('v'), t:'R', f:f, mid:dmat.id, q:q, p:avg, alm:almD, eo:mode, obra:src.id, obraNom:srcName, lk:lk, obs:obs };
+  if(ref){ ms.ref=ref; mr.ref=ref; }
+  ms.num=nextNumIn(src.db, 'E');
+  mr.num=nextNumIn(dst.db, 'R');
+  ms.numO=mr.num; mr.numO=ms.num;
+  src.db.movs.push(ms);
+  dst.db.movs.push(mr);
+  var mine = src.id===CUR? ms : mr;
+  stSetMany([[pKey(CUR), DB], [pKey(otherId), otherDb]], function(err){
+    if(err){ eoFail(err, snaps, otherId); }
+  });
+  OTHERS[otherId]=buildOther(otherId, otherDb);
+  EO.mid=null; EO.ref=null; if(mode==='D'){ EO.mode='P'; }
+  $('eoQ').value=''; $('eoObs').value='';
+  renderAll();
+  eoRender();
+  toast(mine.num+' registrado ✓ ('+eoKind(mode).toLowerCase()+')', 3200);
+  backupReminder();
+}
+function eoAnular(m){
+  var i;
+  if(m.eo==='P'){
+    for(i=0;i<DB.movs.length;i++){
+      if(DB.movs[i].eo==='D' && DB.movs[i].ref===m.lk){ alert('Este préstamo tiene devoluciones registradas. Anula primero las devoluciones.'); return; }
+    }
+  }
+  var o=OTHERS[m.obra];
+  if(!o && META.projects.length>1 && findProj(m.obra)){ alert('Espera un momento: cargando la otra obra.'); return; }
+  var pair=null, pairIdx=-1;
+  if(o){
+    for(i=0;i<o.db.movs.length;i++){ if(o.db.movs[i].lk===m.lk && o.db.movs[i].t!==m.t){ pair=o.db.movs[i]; pairIdx=i; break; } }
+  }
+  /* quitar un ingreso exige que el saldo no quede negativo */
+  if(m.t==='R' && stockAlm(m.mid, m.alm)-m.q < -EPS){
+    alert('No se puede anular: ese material ya se usó en esta obra (el saldo quedaría negativo).'); return;
+  }
+  if(pair && pair.t==='R' && stQ(o.st, pair.mid, pair.alm)-pair.q < -EPS){
+    alert('No se puede anular: «'+o.nom+'» ya usó ese material (su saldo quedaría negativo).'); return;
+  }
+  var txt='¿Anular '+m.num+' ('+eoKind(m.eo).toLowerCase()+')?';
+  txt += pair? (' También se anulará '+pair.num+' en «'+o.nom+'».') : ' La otra obra no está vinculada en este teléfono: se anulará solo aquí.';
+  if(!confirm(txt)){ return; }
+  var snaps = pair? [eoSnap(DB), eoSnap(o.db)] : null;
+  for(i=0;i<DB.movs.length;i++){ if(DB.movs[i].id===m.id){ DB.movs.splice(i,1); break; } }
+  if(pair){
+    o.db.movs.splice(pairIdx,1);
+    stSetMany([[pKey(CUR), DB], [pKey(o.id), o.db]], function(err){ if(err){ eoFail(err, snaps, o.id); } });
+    OTHERS[o.id]=buildOther(o.id, o.db);
+  }else{
+    save();
+  }
+  renderAll();
+  if(!$('v-eo').className.match(/hidden/)){ eoRender(); }
+  toast(m.num+' anulado.');
+}
+function loanHTML(l, fromDb, obraNom, withBtn){
+  var mt=matIn(fromDb, l.mid);
+  var who = l.dir==='out'? ('Prestado a '+esc(obraLabel(l.obra, l.obraNom))) : ('Recibido de '+esc(obraLabel(l.obra, l.obraNom)));
+  return '<div class="loan'+(l.dir==='in'?' in':'')+'">'
+    +'<div class="lt">'+(obraNom?(esc(obraNom)+' — '):'')+(mt? esc(mt.nom) : '—')+'</div>'
+    +'<div class="ls"><span class="mono">'+esc(l.num)+'</span> · '+dmy(l.f)+' · '+who+'</div>'
+    +'<div class="ls">Prestado: <b>'+qty(l.q)+'</b> · devuelto: <b>'+qty(l.ret)+'</b> · pendiente: <b class="pendc">'+qty(l.pend)+' '+(mt? esc(mt.und) : '')+'</b></div>'
+    +(withBtn?('<button type="button" class="btn ghost sm" data-eodev="'+esc(l.lk)+'">'+(l.dir==='in'?'Devolver':'Registrar devolución recibida')+'</button>'):'')
+    +'</div>';
+}
+function renderEoLoans(){
+  var lo=loansOf(DB), out='';
+  for(var i=lo.length-1;i>=0;i--){
+    if(lo[i].pend>EPS){ out+=loanHTML(lo[i], DB, '', true); }
+  }
+  $('eoLoans').innerHTML = out || '<div class="note" style="margin:0 0 10px">Sin préstamos pendientes.</div>';
+}
+function repData(){
+  var cols=[{id:CUR, nom:projName(DB), st:STATE, db:DB}], i, j;
+  for(i=0;i<META.projects.length;i++){
+    var o=OTHERS[META.projects[i].id];
+    if(o){ cols.push({id:o.id, nom:o.nom, st:o.st, db:o.db}); }
+  }
+  var rows={}, order=[];
+  for(j=0;j<cols.length;j++){
+    var c=cols[j];
+    for(i=0;i<c.db.mats.length;i++){
+      var mt=c.db.mats[i], k=codKey(mt.cod);
+      if(!rows[k]){ rows[k]={cod:mt.cod, nom:mt.nom, und:mt.und, q:[]}; order.push(k); }
+      rows[k].q[j]=(rows[k].q[j]||0)+stQ(c.st, mt.id);
+    }
+  }
+  order.sort();
+  return {cols:cols, rows:rows, order:order};
+}
+function renderRep(){
+  if(!STATE){ return; }
+  var d=repData(), cols=d.cols, i, j;
+  var qstr=($('qr').value||'').toLowerCase(), need=$('repNeed').checked;
+  var h='<div class="tscroll"><table class="cmp"><tr><th class="l">Material</th>';
+  for(j=0;j<cols.length;j++){ h+='<th>'+esc(cols[j].nom)+(j===0?' (actual)':'')+'</th>'; }
+  h+='<th>Total</th></tr>';
+  var shown=0, rest=0;
+  for(i=0;i<d.order.length;i++){
+    var r=d.rows[d.order[i]], tot=0, oth=0;
+    for(j=0;j<cols.length;j++){ var v=r.q[j]||0; tot+=v; if(j>0){ oth+=v; } }
+    if(tot<=EPS){ continue; }
+    if(need && !((r.q[0]||0)<=EPS && oth>EPS)){ continue; }
+    if(qstr && (r.cod+' '+r.nom).toLowerCase().indexOf(qstr)===-1){ continue; }
+    if(shown>=LIM.rep){ rest++; continue; }
+    shown++;
+    var here=r.q[0]||0;
+    h+='<tr><td class="l"><span class="cod">'+esc(r.cod)+'</span>'+esc(r.nom)+' <span style="color:#6B7076">'+esc(r.und)+'</span></td>';
+    for(j=0;j<cols.length;j++){
+      var q=r.q[j]||0;
+      var cls = q<=EPS? 'zero' : ((j>0 && here<=EPS)? 'need' : '');
+      h+='<td'+(cls?(' class="'+cls+'"'):'')+'>'+(q<=EPS?'—':qty(q))+'</td>';
+    }
+    h+='<td><b>'+qty(tot)+'</b></td></tr>';
+  }
+  h+='</table></div>';
+  if(!shown){ h='<div class="note" style="margin:0 0 10px">Sin saldos que mostrar'+(META.projects.length>1 && cols.length<META.projects.length?' (cargando otras obras…)':'')+'.</div>'; }
+  $('repTable').innerHTML=h+moreHTML('rep', rest);
+  var lo='';
+  for(j=0;j<cols.length;j++){
+    var ls=loansOf(cols[j].db);
+    for(i=0;i<ls.length;i++){
+      if(ls[i].dir==='out' && ls[i].pend>EPS){ lo+=loanHTML(ls[i], cols[j].db, cols[j].nom, false); }
+    }
+  }
+  $('repLoans').innerHTML = lo || '<div class="note" style="margin:0">Sin préstamos pendientes entre obras.</div>';
+}
+function csvRep(){
+  var d=repData(), cols=d.cols, i, j;
+  var out='﻿Código;Descripción;Unidad';
+  for(j=0;j<cols.length;j++){ out+=';'+csvField(cols[j].nom); }
+  out+=';Total\n';
+  for(i=0;i<d.order.length;i++){
+    var r=d.rows[d.order[i]], tot=0, line='';
+    for(j=0;j<cols.length;j++){ var v=r.q[j]||0; tot+=v; line+=';'+csvNum(v,2); }
+    if(tot<=EPS){ continue; }
+    out+=csvField(r.cod)+';'+csvField(r.nom)+';'+csvField(r.und)+line+';'+csvNum(tot,2)+'\n';
+  }
+  dl('saldos_entre_obras_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
+}
+function slug(t){
+  t=(''+(t||'obra')).toLowerCase();
+  var from='áéíóúüñ', to='aeiouun';
+  for(var i=0;i<from.length;i++){ t=t.split(from.charAt(i)).join(to.charAt(i)); }
+  t=t.replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  return t.substring(0,40) || 'obra';
+}
+function markBackup(){
+  META.lastBackup=new Date().toISOString();
+  saveMeta();
+  renderBackupInfo();
+}
+function backup(){
+  dl('respaldo_almacen_'+slug(DB.obra)+'_'+todayISO()+'.json','application/json',JSON.stringify(DB));
+  markBackup();
+  toast('Respaldo de la obra descargado.');
+}
+function collectAll(cb){
+  var out={ app:'almacen_obra', tipo:'completo', ver:4, fecha:new Date().toISOString(), active:CUR, projects:[] };
+  var list=META.projects.slice(0), i=0;
+  function next(){
+    if(i>=list.length){ cb(null, out); return; }
+    var pr=list[i++];
+    if(pr.id===CUR){ out.projects.push({id:pr.id, nom:pr.nom, db:DB}); next(); return; }
+    stGet(pKey(pr.id), function(err, val){
+      if(err){ cb(err, null); return; }
+      if(val){ out.projects.push({id:pr.id, nom:pr.nom, db:val}); }
+      next();
+    });
+  }
+  next();
+}
+function backupAll(){
+  collectAll(function(err, obj){
+    if(err){ alert('No se pudo leer una de las obras para el respaldo.'); return; }
+    dl('respaldo_almacen_COMPLETO_'+todayISO()+'.json','application/json',JSON.stringify(obj));
+    markBackup();
+    toast('Respaldo completo descargado ('+obj.projects.length+' obras).');
+  });
+}
+function canShareFiles(){
+  try{
+    if(!navigator.canShare || !navigator.share || typeof File==='undefined'){ return false; }
+    return navigator.canShare({ files:[ new File(['{}'],'t.json',{type:'application/json'}) ] });
+  }catch(e){ return false; }
+}
+function shareAll(){
+  collectAll(function(err, obj){
+    if(err){ alert('No se pudo leer una de las obras para el respaldo.'); return; }
+    var f;
+    try{ f=new File([JSON.stringify(obj)],'respaldo_almacen_COMPLETO_'+todayISO()+'.json',{type:'application/json'}); }
+    catch(e){ backupAll(); return; }
+    try{
+      navigator.share({ files:[f], title:'Respaldo almacén de obra' }).then(function(){
+        markBackup(); toast('Respaldo compartido ✓');
+      }, function(){});
+    }catch(e2){ backupAll(); }
+  });
+}
+function isFullBackup(o){ return o && o.tipo==='completo' && o.projects && o.projects.length!==undefined; }
+function isProjBackup(o){ return o && o.mats && o.movs; }
+function projEmpty(db){ return !db.mats.length && !db.movs.length && !db.provs.length && !db.ocs.length; }
+function restoreFile(file){
+  var fr=new FileReader();
+  fr.onload=function(){
+    var obj=null;
+    try{ obj=JSON.parse(fr.result); }catch(e){ alert('El archivo no es un respaldo válido.'); return; }
+    var btns='';
+    if(isFullBackup(obj)){
+      var valid=0;
+      for(var i=0;i<obj.projects.length;i++){ if(obj.projects[i] && isProjBackup(obj.projects[i].db)){ valid++; } }
+      if(!valid){ alert('El respaldo completo no contiene obras válidas.'); return; }
+      $('rInfo').innerHTML='Respaldo completo del '+esc(dmy((''+(obj.fecha||'')).substring(0,10)))+' con <b>'+valid+'</b> obra(s).';
+      btns='<button class="btn dark sm" data-rst="addall">Agregar como obras nuevas (no borra nada)</button>'
+        +'<button class="btn ghost sm" data-rst="replaceall">Reemplazar TODAS las obras de este teléfono…</button>';
+    }else if(isProjBackup(obj)){
+      $('rInfo').innerHTML='Respaldo de una obra: <b>'+esc(projName(obj))+'</b> · '+obj.mats.length+' materiales · '+obj.movs.length+' movimientos.';
+      btns='<button class="btn dark sm" data-rst="addone">Agregar como obra nueva (no borra nada)</button>'
+        +'<button class="btn ghost sm" data-rst="replaceone">Reemplazar la obra activa («'+esc(projName(DB))+'»)…</button>';
+    }else{
+      alert('El archivo no es un respaldo válido.'); return;
+    }
+    pendingRestore=obj;
+    $('rBtns').innerHTML=btns;
+    $('rmodal').className='modal np';
+  };
+  fr.readAsText(file);
+}
+function closeRestore(){ $('rmodal').className='modal np hidden'; pendingRestore=null; }
+function addProjects(items, cb){
+  /* guarda cada obra con id nuevo (remapeando los enlaces entre obras);
+     si la única obra actual está vacía, la reemplaza */
+  var replaceEmpty = META.projects.length===1 && projEmpty(DB);
+  var oldId=CUR, firstId=null, i=0, j, k2, idmap={}, dbs=[];
+  for(j=0;j<items.length;j++){
+    var nid=genId('w')+j;
+    if(items[j].old){ idmap[items[j].old]=nid; }
+    items[j].nid=nid;
+    dbs.push(migrate(items[j].db));
+  }
+  for(j=0;j<dbs.length;j++){
+    for(k2=0;k2<dbs[j].movs.length;k2++){
+      var mv=dbs[j].movs[k2];
+      /* enlaces a obras que no vienen en el respaldo se desvinculan (queda solo el nombre)
+         para no tocar movimientos de obras reales al anular o devolver */
+      if(mv.obra){ mv.obra = idmap[mv.obra] || null; }
+    }
+  }
+  function next(){
+    if(i>=dbs.length){
+      if(replaceEmpty && firstId){
+        for(var k=0;k<META.projects.length;k++){ if(META.projects[k].id===oldId){ META.projects.splice(k,1); break; } }
+        stDel(pKey(oldId));
+      }
+      saveMeta();
+      cb(firstId);
+      return;
+    }
+    var id=items[i].nid, db=dbs[i++];
+    if(!firstId){ firstId=id; }
+    META.projects.push({id:id, nom:projName(db)});
+    stSet(pKey(id), db, function(err){ if(err){ saveErr(err); } next(); });
+  }
+  next();
+}
+function doRestore(mode){
+  var obj=pendingRestore;
+  if(!obj){ return; }
+  var dbs=[], items=[], i;
+  if(mode==='addall' || mode==='replaceall'){
+    for(i=0;i<obj.projects.length;i++){
+      if(obj.projects[i] && isProjBackup(obj.projects[i].db)){
+        dbs.push(obj.projects[i].db);
+        items.push({old:obj.projects[i].id||null, db:obj.projects[i].db});
+      }
+    }
+  }else{
+    dbs.push(obj);
+    items.push({old:null, db:obj});
+  }
+  if(mode==='replaceone'){
+    if(!confirm('Se REEMPLAZARÁN los datos de «'+projName(DB)+'» por los del respaldo. Las demás obras no se tocan. ¿Continuar?')){ return; }
+    STATE=null;
+    DB=migrate(obj);
+    resetUIState();
+    save(); closeRestore(); afterSwitch();
+    toast('Respaldo importado ✓');
+    return;
+  }
+  if(mode==='replaceall'){
+    var r=prompt('Se borrarán las '+META.projects.length+' obras de este teléfono y se cargarán las '+dbs.length+' del respaldo. Escribe BORRAR para confirmar:');
+    if(r!=='BORRAR'){ return; }
+    var old=META.projects.slice(0);
+    for(i=0;i<old.length;i++){ stDel(pKey(old[i].id)); }
+    META.projects=[];
+    CUR=null;
+    DB={mats:[],movs:[],provs:[],ocs:[]};
+  }
+  closeRestore();
+  if(!persist){
+    DB=migrate(dbs[0]); resetUIState(); afterSwitch();
+    toast('Importado solo en memoria (esta vista no guarda).'); return;
+  }
+  addProjects(items, function(firstId){
+    openProject(firstId, function(){
+      afterSwitch();
+      toast(dbs.length+' obra(s) importada(s) ✓', 3200);
+    });
+  });
+}
+function afterSwitch(){
+  provPickClear();
+  var xs=['ing','sal','kar','oc'];
+  for(var i=0;i<xs.length;i++){ PICK[xs[i]]=null; $('pc-'+xs[i]).className='pick-chip hidden'; $('pw-'+xs[i]).className=''; }
+  $('q').value=''; $('qo').value=''; $('qp').value='';
+  renderAll();
+  showView('stock');
+  loadOthers();
+}
+function switchProject(id){
+  if(id===CUR || !findProj(id)){ return; }
+  if(!persist){ return; }
+  openProject(id, function(){ afterSwitch(); toast('Obra: '+projName(DB)); });
+}
+function openNewProj(){
+  $('wNom').value='';
+  $('wPisos').value=11;
+  $('wCopyMat').checked=DB.mats.length>0;
+  $('wCopyProv').checked=DB.provs.length>0;
+  $('wCopyAlm').checked=false;
+  $('wmodal').className='modal np';
+}
+function closeNewProj(){ $('wmodal').className='modal np hidden'; }
+function saveNewProj(){
+  var nom=trim($('wNom').value);
+  if(!nom){ toast('Escribe el nombre de la obra.'); return; }
+  if(!persist){ alert('Esta vista no guarda datos: abre el archivo en el navegador del teléfono para manejar varias obras.'); return; }
+  var nd=defaultDB(), i;
+  nd.obra=nom;
+  nd.pisos=clampPisos($('wPisos').value);
+  nd.empresa=DB.empresa||'';
+  nd.brand={ nom:(DB.brand&&DB.brand.nom)||'', cip:(DB.brand&&DB.brand.cip)||'', cel:(DB.brand&&DB.brand.cel)||'' };
+  if($('wCopyMat').checked){
+    for(i=0;i<DB.mats.length;i++){ var m=DB.mats[i]; nd.mats.push({id:m.id,cod:m.cod,nom:m.nom,und:m.und,min:m.min||0}); }
+  }
+  if($('wCopyProv').checked){
+    for(i=0;i<DB.provs.length;i++){ var p=DB.provs[i]; nd.provs.push({id:p.id,nom:p.nom,ruc:p.ruc||'',con:p.con||'',tel:p.tel||'',dir:p.dir||'',ciu:p.ciu||'',obs:p.obs||''}); }
+  }
+  if($('wCopyAlm').checked && DB.alms.length){
+    nd.alms=[];
+    for(i=0;i<DB.alms.length;i++){ nd.alms.push({id:DB.alms[i].id, nom:DB.alms[i].nom, resp:DB.alms[i].resp||''}); }
+  }
+  var id=genId('w');
+  META.projects.push({id:id, nom:projName(nd)});
+  stSet(pKey(id), nd, function(err){
+    if(err){ saveErr(err); return; }
+    closeNewProj();
+    openProject(id, function(){ afterSwitch(); toast('Obra creada: '+nom); });
+  });
+}
+function delProject(){
+  if(META.projects.length<=1){ alert('Es la única obra. Usa «Borrar todo el contenido de esta obra» en la zona de riesgo.'); return; }
+  var nm=projName(DB);
+  var lo=loansOf(DB), pend=0;
+  for(var li=0;li<lo.length;li++){ if(lo[li].pend>EPS){ pend++; } }
+  var r=prompt((pend?('⚠ Esta obra tiene '+pend+' préstamo(s) pendiente(s) con otras obras; quedarán sin poder cerrarse.\n'):'')
+    +'Se eliminará la obra «'+nm+'» con todo su catálogo, kardex y compras. Te recomendamos descargar antes su respaldo. Escribe BORRAR para confirmar:');
+  if(r!=='BORRAR'){ return; }
+  var id=CUR;
+  for(var i=0;i<META.projects.length;i++){ if(META.projects[i].id===id){ META.projects.splice(i,1); break; } }
+  stDel(pKey(id));
+  openProject(META.projects[0].id, function(){ afterSwitch(); toast('Obra eliminada.'); });
+}
+function seed(){
+  var added=0;
+  for(var i=0;i<SEED.length;i++){
+    var s=SEED[i], exists=false;
+    for(var j=0;j<DB.mats.length;j++){ if(DB.mats[j].cod===s[0]){ exists=true; break; } }
+    if(!exists){ DB.mats.push({id:genId('m'),cod:s[0],nom:s[1],und:s[2],min:s[3]}); added++; }
+  }
+  save(); renderAll();
+  toast(added? (added+' materiales agregados al catálogo.') : 'El catálogo base ya estaba cargado.');
+}
+
+function showView(v){
+  var views=['stock','ing','sal','kar','oc','ocd','mas','prov','provd','eo','rep'];
+  for(var i=0;i<views.length;i++){
+    $('v-'+views[i]).className = views[i]===v ? 'view' : 'view hidden';
+  }
+  var hl = v;
+  if(v==='prov'||v==='provd'){ hl='mas'; }
+  if(v==='ocd'){ hl='oc'; }
+  if(v==='eo'){ hl=eoBackTo; eoRender(); }
+  if(v==='rep'){ hl='mas'; renderRep(); }
+  var btns=$('tabs').getElementsByTagName('button');
+  for(var j=0;j<btns.length;j++){
+    btns[j].className = btns[j].getAttribute('data-v')===hl ? 'on' : '';
+  }
+  window.scrollTo(0,0);
+}
+
+function fillSelect(el, arr){
+  var html='';
+  for(var i=0;i<arr.length;i++){ html+='<option value="'+esc(arr[i])+'">'+esc(arr[i])+'</option>'; }
+  el.innerHTML=html;
+}
+function setIngTipo(t){
+  ingTipo=t;
+  $('segC').className = t==='C'?'on':'';
+  $('segD').className = t==='D'?'on':'';
+  $('segT').className = t==='T'?'on':'';
+  $('wrapC').className = t==='C'?'':'hidden';
+  $('wrapP').className = t==='C'?'':'hidden';
+  $('wrapD').className = t==='D'?'':'hidden';
+  $('wrapT').className = t==='T'?'':'hidden';
+  $('wrapAlmIn').className = (t!=='T' && multiAlm())? '' : 'hidden';
+  $('btnIng').innerHTML = t==='C'?'Registrar ingreso':(t==='D'?'Registrar devolución':'Registrar traslado');
+  trfHint();
+}
+function ocCfgSave(){
+  var oc=findOC(OC_SEL);
+  if(!oc || oc.estado!=='COT'){ return; }
+  oc.f=$('ocF').value||todayISO();
+  oc.alm=$('ocAlm').value||defaultAlmId();
+  oc.cond=trim($('ocCond').value);
+  oc.obs=trim($('ocObs').value);
+  save(); renderOCList();
+}
+function init(){
+  fillSelect($('mUnd'), UNIDADES);
+  $('ingF').value=todayISO();
+  $('salF').value=todayISO();
+
+  $('tabs').addEventListener('click', function(ev){
+    var b=ev.target;
+    while(b && b!==this && !b.getAttribute('data-v')){ b=b.parentNode; }
+    if(b && b.getAttribute && b.getAttribute('data-v')){ showView(b.getAttribute('data-v')); }
+  });
+
+  /* stock */
+  $('q').addEventListener('input', function(){ limReset('stock'); renderStock(); });
+  $('stockAlmSel').addEventListener('change', renderStock);
+  $('stockList').addEventListener('click', function(ev){
+    var r=ev.target;
+    while(r && r!==this && !(r.className && (' '+r.className+' ').indexOf(' mrow ')>-1)){ r=r.parentNode; }
+    if(r && r.getAttribute && r.getAttribute('data-id')){
+      pickSet('kar', r.getAttribute('data-id'));
+      showView('kar');
+    }
+  });
+  $('bNewMat1').addEventListener('click', function(){ openMatModal(null); });
+  $('bNewMat2').addEventListener('click', function(){ openMatModal(null); });
+  $('bSeed1').addEventListener('click', seed);
+  $('bSeed2').addEventListener('click', seed);
+
+  bindPicker('ing'); bindPicker('sal'); bindPicker('kar'); bindPicker('oc');
+
+  /* picker proveedor (compra directa) */
+  $('pvi').addEventListener('input', function(){ limReset('pv'); provSuggest(); });
+  $('pvi').addEventListener('focus', provSuggest);
+  $('pvsug').addEventListener('click', function(ev){
+    var b=ev.target;
+    while(b && b!==this && !b.getAttribute('data-pvid')){ b=b.parentNode; }
+    if(b && b.getAttribute && b.getAttribute('data-pvid')){ provPickSet(b.getAttribute('data-pvid')); }
+  });
+  $('pvClr').addEventListener('click', provPickClear);
+  $('pvNew').addEventListener('click', function(){ provCreateTarget='pick'; openProvModal(null); });
+
+  /* delegación global */
+  document.body.addEventListener('click', function(ev){
+    var t=ev.target;
+    if(!t.getAttribute){ return; }
+    var clr=t.getAttribute('data-clr');
+    if(clr){ pickClear(clr); return; }
+    var mo=t.getAttribute('data-more');
+    if(mo){ moreClick(mo); return; }
+    var ea=t.getAttribute('data-eoask');
+    if(ea){ eoAsk(ea, parseNum(t.getAttribute('data-eoq')||0), $('v-kar').className.match(/hidden/)? 'oc' : 'kar'); return; }
+    var ed=t.getAttribute('data-eodev');
+    if(ed){ eoStartDev(ed); return; }
+    if(t.id==='eoDevX'){ eoCancelDev(); return; }
+    var nm=t.getAttribute('data-newmat');
+    if(nm){ pendingPickTarget=nm; openMatModal(null); return; }
+    var anu=t.getAttribute('data-anu');
+    if(anu){ anular(anu); return; }
+    var vl=t.getAttribute('data-vale');
+    if(vl){ showVale(vl); return; }
+    var od=t.getAttribute('data-ocdoc');
+    if(od){ showOCdoc(od); return; }
+    var ae=t.getAttribute('data-almedit');
+    if(ae){ openAlmModal(ae); return; }
+    var ad=t.getAttribute('data-almdel');
+    if(ad){ almDelete(ad); return; }
+  });
+
+  /* ingreso */
+  $('segC').addEventListener('click', function(){ setIngTipo('C'); });
+  $('segD').addEventListener('click', function(){ setIngTipo('D'); });
+  $('segT').addEventListener('click', function(){ setIngTipo('T'); });
+  $('segO').addEventListener('click', function(){ eoBackTo='ing'; showView('eo'); });
+
+  /* entre obras */
+  $('bkEo').addEventListener('click', function(){ showView(eoBackTo==='oc' && OC_SEL? 'ocd' : eoBackTo); });
+  $('eoDirR').addEventListener('click', function(){ eoSetDir('R'); });
+  $('eoDirS').addEventListener('click', function(){ eoSetDir('S'); });
+  $('eoModeP').addEventListener('click', function(){ eoSetMode('P'); });
+  $('eoModeT').addEventListener('click', function(){ eoSetMode('T'); });
+  $('eoObra').addEventListener('change', function(){ EO.other=this.value; EO.mid=null; eoRender(); });
+  $('eoAlmS').addEventListener('change', eoChip);
+  $('eoClr').addEventListener('click', function(){ EO.mid=null; eoChip(); });
+  $('pi-eo').addEventListener('input', function(){ limReset('sug-eo'); eoSuggest(); });
+  $('pi-eo').addEventListener('focus', eoSuggest);
+  $('ps-eo').addEventListener('click', function(ev){
+    var b=ev.target;
+    while(b && b!==this && !(b.getAttribute && b.getAttribute('data-eomid'))){ b=b.parentNode; }
+    if(b && b.getAttribute && b.getAttribute('data-eomid')){
+      EO.mid=b.getAttribute('data-eomid');
+      $('pi-eo').value=''; $('ps-eo').innerHTML='';
+      eoChip();
+    }
+  });
+  $('btnEo').addEventListener('click', eoSave);
+  $('bGoRep').addEventListener('click', function(){ showView('rep'); });
+  $('bGoRep2').addEventListener('click', function(){ showView('rep'); });
+  $('bGoEo').addEventListener('click', function(){ eoBackTo='mas'; showView('eo'); });
+  $('bkRep').addEventListener('click', function(){ showView('mas'); });
+  $('qr').addEventListener('input', function(){ limReset('rep'); renderRep(); });
+  $('repNeed').addEventListener('change', function(){ limReset('rep'); renderRep(); });
+  $('bCsvRep').addEventListener('click', csvRep);
+  $('trfFrom').addEventListener('change', trfHint);
+  $('btnIng').addEventListener('click', saveIngreso);
+
+  /* salida */
+  $('salAlm').addEventListener('change', function(){ pickChipRefresh('sal'); });
+  $('btnSal').addEventListener('click', saveSalida);
+
+  /* kardex */
+  $('bEditMat').addEventListener('click', function(){ if(PICK.kar){ openMatModal(PICK.kar); } });
+  $('bCsvKar').addEventListener('click', csvKardex);
+  $('bCsvPh').addEventListener('click', csvPrecios);
+
+  /* compras (OC) */
+  $('bNewOC').addEventListener('click', newOC);
+  $('bCsvOC').addEventListener('click', csvOCs);
+  $('qo').addEventListener('input', function(){ limReset('oc'); renderOCList(); });
+  $('ocList').addEventListener('click', function(ev){
+    var r=ev.target;
+    while(r && r!==this && !(r.getAttribute && r.getAttribute('data-ocid'))){ r=r.parentNode; }
+    if(r && r.getAttribute && r.getAttribute('data-ocid')){
+      OC_SEL=r.getAttribute('data-ocid');
+      renderOCDetail();
+      showView('ocd');
+    }
+  });
+  $('bkOcd').addEventListener('click', function(){ showView('oc'); });
+  $('ocF').addEventListener('change', ocCfgSave);
+  $('ocAlm').addEventListener('change', ocCfgSave);
+  $('ocCond').addEventListener('change', ocCfgSave);
+  $('ocObs').addEventListener('change', ocCfgSave);
+  $('bOcAddItem').addEventListener('click', ocAddItem);
+  $('bOcAddCot').addEventListener('click', pselOpen);
+  $('ocdItems').addEventListener('click', function(ev){
+    var t=ev.target;
+    if(t.getAttribute && t.getAttribute('data-ocdelitem')){
+      ocDelItem(t.getAttribute('data-ocdelitem'));
+    }
+  });
+  $('ocdCots').addEventListener('click', function(ev){
+    var t=ev.target;
+    if(!t.getAttribute){ return; }
+    var cd=t.getAttribute('data-occotdel');
+    if(cd){
+      if(confirm('¿Quitar esta cotización?')){ ocDelCot(parseInt(cd,10)); }
+    }
+  });
+  $('ocdCots').addEventListener('change', function(ev){
+    var t=ev.target;
+    if(!t.getAttribute){ return; }
+    var cp=t.getAttribute('data-occp');
+    if(cp){
+      var parts=cp.split('|');
+      ocSetPrice(parseInt(parts[0],10), parts[1], t.value);
+      return;
+    }
+    var cn=t.getAttribute('data-occn');
+    if(cn){
+      var oc=findOC(OC_SEL);
+      var ix=parseInt(cn,10);
+      if(oc && oc.estado==='COT' && oc.cots[ix]){ oc.cots[ix].nota=trim(t.value); save(); }
+    }
+  });
+  $('ocdActions').addEventListener('click', function(ev){
+    var t=ev.target;
+    if(!t.getAttribute){ return; }
+    var aj=t.getAttribute('data-ocadj');
+    if(aj){ ocAdjudicar(parseInt(aj,10)); return; }
+    if(t.id==='bOcDel'){ ocDelete(); return; }
+    if(t.id==='bOcPrint'){ showOCdoc(OC_SEL); return; }
+    if(t.id==='bOcRec'){ openRecModal(); return; }
+    if(t.id==='bOcAnu'){ ocAnular(); return; }
+  });
+
+  /* selector de proveedor cotizante */
+  $('psq').addEventListener('input', function(){ limReset('psel'); pselList(); });
+  $('pslist').addEventListener('click', function(ev){
+    var b=ev.target;
+    while(b && b!==this && !(b.getAttribute && b.getAttribute('data-psel'))){ b=b.parentNode; }
+    if(b && b.getAttribute && b.getAttribute('data-psel')){
+      ocAddCot(b.getAttribute('data-psel'));
+      pselClose();
+    }
+  });
+  $('psNew').addEventListener('click', function(){ provCreateTarget='oc'; openProvModal(null); });
+  $('psCancel').addEventListener('click', pselClose);
+
+  /* recepción */
+  $('recSave').addEventListener('click', saveRec);
+  $('recCancel').addEventListener('click', closeRecModal);
+
+  /* proveedores */
+  $('bGoProv').addEventListener('click', function(){ provBackTo='mas'; showView('prov'); });
+  $('bkProv').addEventListener('click', function(){ showView(provBackTo); });
+  $('bkProvd').addEventListener('click', function(){ showView('prov'); });
+  $('qp').addEventListener('input', function(){ limReset('prov'); renderProvList(); });
+  $('provList').addEventListener('click', function(ev){
+    var r=ev.target;
+    while(r && r!==this && !(r.getAttribute && r.getAttribute('data-pid'))){ r=r.parentNode; }
+    if(r && r.getAttribute && r.getAttribute('data-pid')){
+      PROV_SEL=r.getAttribute('data-pid');
+      limReset('pd');
+      renderProvDetail();
+      showView('provd');
+    }
+  });
+  $('bNewProv').addEventListener('click', function(){ openProvModal(null); });
+  $('bCsvProv').addEventListener('click', csvProvs);
+  $('bEditProv').addEventListener('click', function(){ if(PROV_SEL){ openProvModal(PROV_SEL); } });
+  $('bDelProv').addEventListener('click', delProv);
+
+  /* más */
+  $('bAddAlm').addEventListener('click', function(){ openAlmModal(null); });
+  $('bCfg').addEventListener('click', function(){
+    DB.obra=trim($('cObra').value);
+    DB.empresa=trim($('cEmp').value);
+    DB.encargado=trim($('cAlm').value);
+    DB.pisos=clampPisos($('cPisos').value);
+    save(); renderAll(); toast('Datos guardados.');
+  });
+  $('bBrand').addEventListener('click', function(){
+    DB.brand={
+      nom:trim($('bNom').value),
+      cip:trim($('bCip').value),
+      cel:trim($('bCel').value)
+    };
+    save(); renderAll(); toast('Marca guardada.');
+  });
+  $('bCsvStock').addEventListener('click', csvStock);
+  $('bCsvMovs').addEventListener('click', csvMovs);
+  $('bBackup').addEventListener('click', backup);
+  $('bBackupAll').addEventListener('click', backupAll);
+  $('bShare').addEventListener('click', shareAll);
+  $('bkWarn').addEventListener('click', function(ev){
+    if(ev.target && ev.target.id==='bkNow'){ if(canShareFiles()){ shareAll(); } else { backupAll(); } }
+  });
+  $('rBtns').addEventListener('click', function(ev){
+    var t=ev.target;
+    if(t && t.getAttribute && t.getAttribute('data-rst')){ doRestore(t.getAttribute('data-rst')); }
+  });
+  $('rCancel').addEventListener('click', closeRestore);
+
+  /* obras */
+  $('projSel').addEventListener('change', function(){ switchProject(this.value); });
+  $('bNewProj').addEventListener('click', openNewProj);
+  $('bDelProj').addEventListener('click', delProject);
+  $('wSave').addEventListener('click', saveNewProj);
+  $('wCancel').addEventListener('click', closeNewProj);
+  $('hObra').addEventListener('click', function(){
+    if(META && META.projects.length>1){ showView('mas'); }
+  });
+  $('bRestore').addEventListener('click', function(){ $('fRestore').click(); });
+  $('fRestore').addEventListener('change', function(){
+    if(this.files && this.files[0]){ restoreFile(this.files[0]); this.value=''; }
+  });
+  $('bWipeMovs').addEventListener('click', function(){
+    var r=prompt('Se borrarán TODOS los movimientos y órdenes de compra (catálogo y proveedores se conservan). Escribe BORRAR para confirmar:');
+    if(r==='BORRAR'){
+      DB.movs=[]; DB.ocs=[];
+      DB.seq={I:0,S:0,D:0,T:0,Q:0,O:0,E:0,R:0};
+      OC_SEL=null;
+      save(); renderAll(); showView('mas');
+      toast('Movimientos y compras eliminados.');
+    }
+  });
+  $('bWipeAll').addEventListener('click', function(){
+    var r=prompt('Se borrará TODO el contenido de la obra «'+projName(DB)+'» (catálogo, proveedores, almacenes, movimientos y compras). Las demás obras no se tocan. Escribe BORRAR para confirmar:');
+    if(r==='BORRAR'){
+      var keepName=DB.obra, keepPisos=DB.pisos;
+      DB=defaultDB();
+      DB.obra=keepName; DB.pisos=keepPisos;
+      PROV_SEL=null; OC_SEL=null;
+      provPickClear();
+      pickClear('ing'); pickClear('sal'); pickClear('kar'); pickClear('oc');
+      save(); renderAll(); showView('mas');
+      toast('Datos reiniciados.');
+    }
+  });
+
+  /* modales */
+  $('mSave').addEventListener('click', saveMat);
+  $('mDel').addEventListener('click', delMat);
+  $('mCancel').addEventListener('click', closeMatModal);
+  $('pSave').addEventListener('click', saveProv);
+  $('pCancel').addEventListener('click', closeProvModal);
+  $('aSave').addEventListener('click', saveAlm);
+  $('aCancel').addEventListener('click', closeAlmModal);
+
+  /* documento imprimible */
+  $('vPrint').addEventListener('click', function(){ window.print(); });
+  $('vClose').addEventListener('click', function(){ $('docModal').className='modal hidden'; });
+
+  load(function(){
+    $('loading').className='np hidden';
+    $('mainApp').className='np';
+    renderAll();
+    setIngTipo('C');
+    showView('stock');
+    loadOthers();
+  });
+}
+
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  try{ navigator.serviceWorker.register('sw.js').then(null, function(){}); }catch(e){}
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', init);
+}else{
+  init();
+}
+})();
+</script>
+</body>
+</html>
