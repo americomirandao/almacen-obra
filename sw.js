@@ -1,11 +1,18 @@
 /* Control de Almacén de Obra — service worker (solo actúa si la app se sirve por https, p. ej. GitHub Pages).
    Guarda una copia de la app en el teléfono para que abra sin internet. Los datos del almacén NO pasan por aquí. */
-var CACHE = 'almacen-obra-v5';
+var CACHE = 'almacen-obra-v8';
 self.addEventListener('install', function (e) { self.skipWaiting(); });
-self.addEventListener('activate', function (e) { e.waitUntil(self.clients.claim()); });
+self.addEventListener('activate', function (e) {
+  /* borra las copias de versiones anteriores */
+  e.waitUntil(caches.keys().then(function (ks) {
+    return Promise.all(ks.filter(function (k) { return k !== CACHE && k.indexOf('almacen-obra-') === 0; })
+      .map(function (k) { return caches['delete'](k); }));
+  }).then(function () { return self.clients.claim(); }));
+});
 self.addEventListener('fetch', function (e) {
-  var req = e.request;
-  if (req.method !== 'GET' || req.url.indexOf(self.location.origin) !== 0) return;
+  var req = e.request, u;
+  try { u = new URL(req.url); } catch (x) { return; }
+  if (req.method !== 'GET' || u.origin !== self.location.origin) return;
   e.respondWith(caches.open(CACHE).then(function (c) {
     return c.match(req).then(function (guardado) {
       var red = fetch(req).then(function (res) {

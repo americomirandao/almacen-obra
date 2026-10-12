@@ -2,13 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-o6vmfqVYsr7s2FcEY7uI2GhwlB99Azi/PnvAvgOlWr8=' https://accounts.google.com; style-src 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob:; connect-src https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#23282D">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="format-detection" content="telephone=no">
-<title>Control de Almacén de Obra v5</title>
+<title>Control de Almacén de Obra v8</title>
 <link rel="manifest" href="manifest.webmanifest">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,.08)}
@@ -31,6 +32,13 @@ a{color:#1F5FA8}
 #bkWarn{background:#FFF8E1;color:#6B4E00;border-bottom:1px solid #EFD27A;padding:8px 14px;font-size:12.5px}
 #bkWarn button{background:#F2B705;color:#23282D;border:none;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:800;margin-left:6px}
 #hdr .h-obra.sw{cursor:pointer}
+#hdr .h-emp{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#FFD65C;margin-bottom:2px}
+#hdr .gdchip{display:inline-block;font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px;margin-left:6px;background:#3A4149;color:#CFE3FF;cursor:pointer}
+#hdr .gdchip.warn{background:#F2B705;color:#23282D}
+.gdfile{border:1px solid #C9CCC7;border-radius:8px;padding:9px;margin:0 0 8px}
+.gdfile b{display:block}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:10px 0 4px}
+.chk input{margin-top:2px}
 #hdr .h-obra .swi{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.02em;text-transform:none;background:#3A4149;color:#FFD65C;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
 #loading{padding:40px 16px;text-align:center;color:#6B7076;font-size:14px}
 .morebtn{display:block;width:100%;background:#fff;border:1px dashed #9AA0A6;border-radius:8px;padding:10px 12px;font-size:13.5px;font-weight:700;color:#1F5FA8;margin:2px 0 10px;text-align:center}
@@ -231,8 +239,9 @@ table.cmp td.need{background:#FFF4E5}
 <body>
 
 <header id="hdr" class="np">
+  <div class="h-emp hidden" id="hEmp"></div>
   <div class="h-obra" id="hObra">CONTROL DE ALMACÉN</div>
-  <div class="h-sub">Valorizado: <b id="hVal">S/ 0.00</b> · <b id="hItems">0</b> materiales<span id="hAlert" class="hidden"></span></div>
+  <div class="h-sub">Valorizado: <b id="hVal">S/ 0.00</b> · <b id="hItems">0</b> materiales<span id="hAlert" class="hidden"></span><span id="hGd" class="gdchip hidden"></span></div>
 </header>
 <div class="stripe np"></div>
 <div id="brandbar" class="np"></div>
@@ -526,6 +535,18 @@ table.cmp td.need{background:#FFF4E5}
   </section>
 
   <section id="v-mas" class="view hidden">
+    <div class="vtitle">Empresa (espacio de trabajo)</div>
+    <div class="card">
+      <span class="lbl">Empresa activa</span>
+      <select id="empSel" class="inp"></select>
+      <div class="note" id="empInfo"></div>
+      <span class="lbl">&nbsp;</span>
+      <button class="btn dark sm" id="bEmpNew">＋ Nueva empresa</button>
+      <button class="btn ghost sm" id="bEmpRen">Renombrar / RUC de la empresa…</button>
+      <button class="btn ghost sm" id="bEmpDel">Eliminar empresa activa…</button>
+      <div class="note">Cada empresa es un espacio totalmente separado: sus obras, préstamos entre obras, reportes, respaldos y archivo de Drive no se mezclan con los de otra empresa.</div>
+    </div>
+
     <div class="vtitle">Obras / proyectos</div>
     <div class="card">
       <span class="lbl">Obra activa</span>
@@ -595,6 +616,20 @@ table.cmp td.need{background:#FFF4E5}
       <input type="file" id="fRestore" accept=".json,application/json" class="hidden">
       <div class="note" id="bkInfo"></div>
       <div class="note">Sirve para pasar los datos a otro teléfono o recuperarlos. Acepta respaldos de las versiones 1 a 4. Importar nunca borra nada sin preguntarte.</div>
+    </div>
+
+    <div class="vtitle">Google Drive (sincronización)</div>
+    <div class="card">
+      <div class="note" id="gdInfo" style="margin-top:0"></div>
+      <span class="lbl">&nbsp;</span>
+      <button class="btn blue sm" id="bGdSync">☁ Sincronizar con Google Drive</button>
+      <label class="chk"><input type="checkbox" id="gdAuto"> <span>Subir los cambios automáticamente mientras la sesión de Google esté abierta (dura ~1 hora; luego vuelve a tocar «Sincronizar»).</span></label>
+      <button class="btn ghost sm" id="bGdUnlink">Desvincular esta empresa de Drive</button>
+      <span class="lbl">ID de cliente de Google (se configura una sola vez)</span>
+      <input id="gdCid" class="inp" placeholder="123456-abc.apps.googleusercontent.com" autocomplete="off" spellcheck="false">
+      <button class="btn ghost sm" id="bGdCid" style="margin-top:8px">Guardar ID de cliente</button>
+      <div class="note" id="gdHelp"></div>
+      <div class="note">Cada empresa usa su propio archivo en tu Drive. La app solo puede ver los archivos que ella misma creó (permiso «drive.file»). Drive guarda versiones anteriores del archivo por si necesitas volver atrás.</div>
     </div>
 
     <div class="vtitle">Almacenamiento</div>
@@ -688,6 +723,16 @@ table.cmp td.need{background:#FFF4E5}
   </div>
 </div>
 
+<div id="gdModal" class="modal np hidden">
+  <div class="mbox">
+    <h3>Vincular con Google Drive</h3>
+    <div class="note" id="gdMInfo" style="margin:4px 0 10px"></div>
+    <div id="gdMList"></div>
+    <button class="btn dark sm" id="gdMNew">Crear archivo nuevo con los datos de este teléfono</button>
+    <button class="btn ghost sm" id="gdMCancel">Cancelar</button>
+  </div>
+</div>
+
 <div id="pselModal" class="modal np hidden">
   <div class="mbox">
     <h3>Agregar proveedor cotizante</h3>
@@ -758,7 +803,10 @@ table.cmp td.need{background:#FFF4E5}
 </datalist>
 
 <script>
-/* Control de Almacén de Obra v5 — ES5, sin dependencias.
+/* Control de Almacén de Obra v8 — ES5, sin dependencias (Google Drive se carga solo al usarlo).
+   v8: arreglos de la auditoría run-3 (seq numérico, toasts escapados, guarda de cambios al traer de Drive, CSP).
+   v7: empresas como espacios separados (una base de datos por empresa) y sincronización con Google Drive.
+   v6: endurecimiento de seguridad al importar respaldos (validación estricta, escape de fechas/ids, CSV sin fórmulas, vínculos entre obras).
    v3: órdenes de compra con cuadro comparativo de cotizaciones, recepción parcial
    que genera NEA automáticos, y almacenero/a editable general y por almacén.
    v4: guardado en IndexedDB (sin el tope de ~5 MB de localStorage), varias obras,
@@ -776,6 +824,20 @@ var IDB_NAME  = 'almacen_obra';
 var IDB_STORE = 'kv';
 var META_KEY  = 'meta';
 var BK_DAYS   = 7;
+/* v7: registro de empresas (en localStorage). La empresa 'e0' usa la base original
+   (almacen_obra) para no mover datos existentes; las demás, una base propia. */
+var EMP_KEY   = 'almacen_empresas';
+var EMP_DEF   = 'Mi empresa';
+var SAFE_EMP  = /^e[a-z0-9]{1,20}$/;
+var EMPS = null;
+var EMP  = null;
+var GD_KEY    = 'almacen_gdrive';
+var GD_CID_DEF = '';
+var GD_SCOPE  = 'https://www.googleapis.com/auth/drive.file';
+var GD_API    = 'https://www.googleapis.com/drive/v3/files';
+var GD_UP     = 'https://www.googleapis.com/upload/drive/v3/files';
+var GD_FIELDS = 'id,name,version,modifiedTime,trashed,appProperties';
+var GD = { tok:null, exp:0, lib:false, libLoading:false, busy:false, timer:null, gen:0, applying:false, conflict:false, msg:'' };
 var UNIDADES = ['und','bol','m³','m²','m','kg','var','pza','p2','gal','l','rll','cja','jgo','mll','glb'];
 function pisosList(n){
   var a = ['Sótano','Cimentación'];
@@ -844,7 +906,7 @@ var toastTimer = null;
 function $(id){ return document.getElementById(id); }
 function esc(s){
   s = (s===undefined || s===null) ? '' : ''+s;
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function trim(s){ return (''+(s===undefined||s===null?'':s)).replace(/^\s+|\s+$/g,''); }
 function pad(n,w){ n=''+n; while(n.length<w){ n='0'+n; } return n; }
@@ -854,9 +916,10 @@ function todayISO(){
 }
 function dmy(iso){
   if(!iso){ return ''; }
-  var p=(''+iso).split('-');
-  if(p.length<3){ return iso; }
-  return p[2]+'/'+p[1]+'/'+p[0];
+  var s0=''+iso;
+  var mm=/^(\d{4})-(\d{2})-(\d{2})/.exec(s0);
+  if(mm){ return mm[3]+'/'+mm[2]+'/'+mm[1]; }
+  return esc(s0);
 }
 function num(n,d){
   if(typeof n!=='number' || isNaN(n)){ n=0; }
@@ -948,6 +1011,117 @@ function canStore(){
   try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; }
   catch(e){ return false; }
 }
+function lsGet(k){
+  try{ var r=localStorage.getItem(k); return r? JSON.parse(r) : null; }catch(e){ return null; }
+}
+function lsSet(k, v){
+  try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; }
+}
+function empClean(e){
+  if(!e || typeof e!=='object' || typeof e.id!=='string' || !SAFE_EMP.test(e.id)){ return null; }
+  return { id:e.id, nom:(trim(e.nom)||'Empresa').substring(0,80), ruc:digits(e.ruc).substring(0,11) };
+}
+function empLoad(){
+  var o=lsGet(EMP_KEY), list=[], seen={}, i, e;
+  if(o && isArr(o.list)){
+    for(i=0;i<o.list.length;i++){
+      e=empClean(o.list[i]);
+      if(e && !Object.prototype.hasOwnProperty.call(seen,e.id)){ seen[e.id]=1; list.push(e); }
+    }
+  }
+  if(!list.length){ list=[{ id:'e0', nom:EMP_DEF, ruc:'' }]; }
+  EMPS={ list:list, active:(o && o.active)||'', named:!!(o && o.named) };
+  EMP=null;
+  for(i=0;i<list.length;i++){ if(list[i].id===EMPS.active){ EMP=list[i]; } }
+  if(!EMP){ EMP=list[0]; }
+  EMPS.active=EMP.id;
+  empApplyNames(EMP.id);
+}
+function empApplyNames(id){
+  IDB_NAME  = id==='e0'? 'almacen_obra' : ('almacen_obra__'+id);
+  LS_PREFIX = id==='e0'? 'almacen_obra_v4_' : ('almacen_obra_v4_'+id+'_');
+}
+function empSave(){ return lsSet(EMP_KEY, EMPS); }
+function empReload(){
+  if(!empSave()){ alert('Este navegador no permite guardar la lista de empresas (modo privado o sin espacio).'); return; }
+  location.reload();
+}
+function empAsk(title, nom0, ruc0){
+  var nom=prompt(title, nom0||'');
+  if(nom===null){ return null; }
+  nom=trim(nom);
+  if(!nom){ toast('Escribe el nombre de la empresa.'); return null; }
+  var ruc=prompt('RUC de «'+nom+'» (opcional, 11 dígitos):', ruc0||'');
+  if(ruc===null){ return null; }
+  ruc=digits(ruc);
+  if(ruc && ruc.length!==11){ alert('El RUC debe tener 11 dígitos.'); return null; }
+  return { nom:nom.substring(0,80), ruc:ruc };
+}
+function empNameTaken(nom){
+  for(var i=0;i<EMPS.list.length;i++){ if(EMPS.list[i].id!==EMP.id && EMPS.list[i].nom.toLowerCase()===(''+nom).toLowerCase()){ return true; } }
+  return false;
+}
+function empNew(){
+  if(!canStore()){ alert('Este navegador no permite crear varias empresas (modo privado o sin espacio).'); return; }
+  var r=empAsk('Nombre de la nueva empresa (razón social):', '', '');
+  if(!r){ return; }
+  for(var i=0;i<EMPS.list.length;i++){
+    if(EMPS.list[i].nom.toLowerCase()===r.nom.toLowerCase()){ alert('Ya existe una empresa con ese nombre.'); return; }
+  }
+  var id='e'+(new Date().getTime()).toString(36)+Math.floor(Math.random()*1296).toString(36);
+  EMPS.list.push({ id:id, nom:r.nom, ruc:r.ruc });
+  EMPS.active=id;
+  empReload();
+}
+function empRename(){
+  var r=empAsk('Nombre de la empresa (razón social):', EMP.nom, EMP.ruc);
+  if(!r){ return; }
+  EMP.nom=r.nom; EMP.ruc=r.ruc; EMPS.named=true;
+  if(!empSave()){ alert('No se pudo guardar el nombre de la empresa en este navegador.'); }
+  renderAll(); toast('Empresa actualizada.');
+}
+function empSwitch(id){
+  if(id===EMP.id){ return; }
+  EMPS.active=id;
+  empReload();
+}
+function empDelete(){
+  if(EMPS.list.length<=1){ alert('Es la única empresa. Para empezar de cero usa «Borrar todo el contenido de esta obra» o crea otra empresa primero.'); return; }
+  var r=prompt('Se eliminará la empresa «'+EMP.nom+'» con TODAS sus obras ('+META.projects.length+') de este teléfono. El archivo de Google Drive (si existe) no se toca. Descarga antes su respaldo completo. Escribe BORRAR para confirmar:');
+  if(r!=='BORRAR'){ return; }
+  var id=EMP.id, prefix=LS_PREFIX, i, keys=[];
+  try{ if(ST.db){ ST.db.close(); } }catch(e){}
+  /* solo las claves propias (meta y proj:) para no tocar las de otras empresas, que comparten el prefijo base */
+  try{ for(i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k && (k===prefix+META_KEY || k.indexOf(prefix+'proj:')===0)){ keys.push(k); } } }catch(e2){}
+  if(id==='e0'){ for(i=0;i<LS_LEGACY.length;i++){ keys.push(LS_LEGACY[i]); } }
+  for(i=0;i<keys.length;i++){ try{ localStorage.removeItem(keys[i]); }catch(e3){} }
+  for(i=0;i<EMPS.list.length;i++){ if(EMPS.list[i].id===id){ EMPS.list.splice(i,1); break; } }
+  EMPS.active=EMPS.list[0].id;
+  var idbf=null;
+  try{ idbf=window.indexedDB||window.webkitIndexedDB||window.mozIndexedDB||window.msIndexedDB; }catch(e4){}
+  var go=once(function(){ empReload(); });
+  if(idbf){
+    try{
+      var rq=idbf.deleteDatabase(IDB_NAME);
+      rq.onsuccess=go; rq.onerror=go; rq.onblocked=go;
+      setTimeout(go, 4000);
+    }catch(e5){ go(); }
+  }else{ go(); }
+}
+function renderEmpresas(){
+  var sel=$('empSel'), html='', list=EMPS.list.slice(0), i;
+  list.sort(function(a,b){ return a.nom.toLowerCase()<b.nom.toLowerCase()?-1:1; });
+  for(i=0;i<list.length;i++){
+    html+='<option value="'+esc(list[i].id)+'">'+esc(list[i].nom)+(list[i].ruc?(' · RUC '+esc(list[i].ruc)):'')+'</option>';
+  }
+  sel.innerHTML=html;
+  sel.value=EMP.id;
+  $('empInfo').innerHTML='Empresas en este teléfono: <b>'+EMPS.list.length+'</b> · Obras de esta empresa: <b>'+META.projects.length+'</b>';
+  $('bEmpDel').className = EMPS.list.length>1? 'btn ghost sm' : 'btn ghost sm hidden';
+  var he=$('hEmp');
+  if(EMPS.list.length>1 || EMP.nom!==EMP_DEF){ he.innerHTML=esc(EMP.nom)+(EMPS.list.length>1?' ⇄':''); he.className='h-emp'; }
+  else{ he.className='h-emp hidden'; }
+}
 function defaultDB(){
   return {
     obra:'', empresa:'', encargado:'',
@@ -967,12 +1141,14 @@ function migrate(o){
   for(i=0;i<o.alms.length;i++){ if(o.alms[i].resp===undefined){ o.alms[i].resp=''; } }
   if(o.encargado===undefined){ o.encargado = (o.alm && typeof o.alm==='string') ? o.alm : ''; }
   if(!o.brand){ o.brand={ nom:BRAND_DEF.nom, cip:BRAND_DEF.cip, cel:BRAND_DEF.cel }; }
-  if(!o.seq){ o.seq={I:0,S:0,D:0,T:0,Q:0,O:0}; }
-  if(o.seq.T===undefined){ o.seq.T=0; }
-  if(o.seq.Q===undefined){ o.seq.Q=0; }
-  if(o.seq.O===undefined){ o.seq.O=0; }
-  if(o.seq.E===undefined){ o.seq.E=0; }
-  if(o.seq.R===undefined){ o.seq.R=0; }
+  /* contadores de documentos: siempre enteros >= 0 (un respaldo ajeno podría traer texto) */
+  if(!o.seq || typeof o.seq!=='object' || isArr(o.seq)){ o.seq={}; }
+  var SQK=['I','S','D','T','Q','O','E','R'], sqv;
+  for(i=0;i<SQK.length;i++){
+    sqv=parseInt(o.seq[SQK[i]],10);
+    o.seq[SQK[i]]=(isNaN(sqv) || sqv<0 || sqv>999999999)? 0 : sqv;
+  }
+  for(var sqk in o.seq){ if(Object.prototype.hasOwnProperty.call(o.seq,sqk) && SQK.join('').indexOf(sqk)<0){ delete o.seq[sqk]; } }
   if(o.obra===undefined){ o.obra=''; }
   if(o.empresa===undefined){ o.empresa=''; }
   o.pisos = clampPisos(o.pisos===undefined? 11 : o.pisos);
@@ -989,7 +1165,7 @@ function migrate(o){
     if(m.t==='I' && !m.pid && m.prov){
       key=(''+m.prov).toLowerCase().replace(/^\s+|\s+$/g,'');
       if(key){
-        if(!provMap[key]){
+        if(!Object.prototype.hasOwnProperty.call(provMap,key)){
           var np={id:genId('p'), nom:trim(m.prov), ruc:'', con:'', tel:'', dir:'', ciu:'', obs:''};
           o.provs.push(np);
           provMap[key]=np.id;
@@ -1015,7 +1191,7 @@ function migrate(o){
 /* ---------- almacenamiento: IndexedDB con respaldo en localStorage ---------- */
 function once(cb){
   var done=false;
-  return function(a,b){ if(!done){ done=true; cb(a,b); } };
+  return function(){ if(!done){ done=true; cb.apply(null, arguments); } };
 }
 function idbOpen(cb){
   cb=once(cb);
@@ -1053,6 +1229,7 @@ function stGet(key, cb){
 }
 function stSet(key, val, cb){
   cb=once(cb||function(){});
+  if(key!==META_KEY){ gdDirty(); }
   if(ST.mode==='idb'){
     try{
       var tx=ST.db.transaction(IDB_STORE,'readwrite');
@@ -1068,6 +1245,7 @@ function stSet(key, val, cb){
 }
 function stDel(key, cb){
   cb=once(cb||function(){});
+  if(key!==META_KEY){ gdDirty(); }
   if(ST.mode==='idb'){
     try{
       var tx=ST.db.transaction(IDB_STORE,'readwrite');
@@ -1156,7 +1334,7 @@ function load(cb){
         return;
       }
       /* primera vez en v4: migrar datos de v1/v2/v3 sin borrarlos */
-      var legacy=readLegacy();
+      var legacy= EMP.id==='e0'? readLegacy() : null;
       META=defaultMeta();
       DB = legacy? migrate(legacy) : defaultDB();
       CUR=genId('w');
@@ -1418,7 +1596,7 @@ function renderBrand(){
   $('brandbar').innerHTML=esc(bl);
   $('brandbar').className = bl? 'np' : 'np hidden';
   $('stockCredit').innerHTML = bl? 'Sistema de control · '+esc(bl) : '';
-  $('masCredit').innerHTML = 'Control de Almacén de Obra v5.0'+(bl?(' · '+esc(bl)):'')+' · Ref. flujo S10 Almacenes';
+  $('masCredit').innerHTML = 'Control de Almacén de Obra v8.0'+(bl?(' · '+esc(bl)):'')+' · Ref. flujo S10 Almacenes';
 }
 
 function renderHeader(){
@@ -2025,6 +2203,8 @@ function renderAll(){
   renderProvList();
   if(PROV_SEL){ renderProvDetail(); }
   renderMas();
+  renderEmpresas();
+  renderGd();
   renderAlmSelects();
   pickChipRefresh('ing'); pickChipRefresh('sal'); pickChipRefresh('kar'); pickChipRefresh('oc');
   provChipRefresh();
@@ -2177,7 +2357,7 @@ function saveMat(){
   if(!cod || !nom){ toast('Completa código y descripción.'); return; }
   for(var i=0;i<DB.mats.length;i++){
     if(DB.mats[i].cod===cod && DB.mats[i].id!==editingMatId){
-      toast('El código '+cod+' ya existe.'); return;
+      toast('El código '+esc(cod)+' ya existe.'); return;
     }
   }
   if(editingMatId){
@@ -2188,7 +2368,7 @@ function saveMat(){
     var nid=genId('m');
     DB.mats.push({id:nid,cod:cod,nom:nom,und:und,min:min});
     if(pendingPickTarget){ pickSet(pendingPickTarget,nid); }
-    toast('Material creado: '+cod);
+    toast('Material creado: '+esc(cod));
   }
   save(); renderAll(); closeMatModal();
 }
@@ -2286,7 +2466,7 @@ function saveAlm(){
     toast('Almacén actualizado.');
   }else{
     DB.alms.push({id:genId('a'),nom:nom,resp:resp});
-    toast('Almacén creado: '+nom);
+    toast('Almacén creado: '+esc(nom));
   }
   save(); renderAll(); closeAlmModal();
 }
@@ -2343,7 +2523,7 @@ function saveIngreso(){
   DB.movs.push(mov);
   save(); renderAll();
   $('ingQ').value=''; $('ingP').value=''; $('ingGui').value=''; $('ingFac').value=''; $('ingObs').value='';
-  toast(mov.num+' registrado ✓');
+  toast(esc(mov.num)+' registrado ✓');
   backupReminder();
 }
 function saveSalida(){
@@ -2381,7 +2561,7 @@ function saveSalida(){
   DB.movs.push(mov);
   save(); renderAll();
   $('salQ').value=''; $('salObs').value='';
-  toast(mov.num+' registrado ✓ <button class="linkbtn" style="color:#FFD65C;padding:0 0 0 8px" data-vale="'+mov.id+'">Ver vale</button>', 6000);
+  toast(esc(mov.num)+' registrado ✓ <button class="linkbtn" style="color:#FFD65C;padding:0 0 0 8px" data-vale="'+esc(mov.id)+'">Ver vale</button>', 6000);
   backupReminder();
 }
 function anular(movId){
@@ -2393,7 +2573,7 @@ function anular(movId){
   if(!confirm('¿Anular '+m.num+'? El stock y el kardex se recalcularán.'+extra)){ return; }
   DB.movs.splice(idx,1);
   save(); renderAll();
-  toast(m.num+' anulado.');
+  toast(esc(m.num)+' anulado.');
 }
 function backupReminder(){
   if(DB.movs.length>0 && DB.movs.length%25===0){
@@ -2495,7 +2675,7 @@ function ocAdjudicar(idx){
   oc.estado='ADJ';
   oc.numOC=nextNum('O');
   save(); renderAll();
-  toast(oc.numOC+' emitida ✓ <button class="linkbtn" style="color:#FFD65C;padding:0 0 0 8px" data-ocdoc="'+oc.id+'">Ver OC</button>', 6000);
+  toast(esc(oc.numOC)+' emitida ✓ <button class="linkbtn" style="color:#FFD65C;padding:0 0 0 8px" data-ocdoc="'+esc(oc.id)+'">Ver OC</button>', 6000);
 }
 function ocAnular(){
   var oc=findOC(OC_SEL);
@@ -2665,7 +2845,9 @@ function showOCdoc(ocId){
 
 function csvField(v){
   v=(v===undefined||v===null)?'':''+v;
-  if(v.indexOf(';')>-1 || v.indexOf('"')>-1 || v.indexOf('\n')>-1){
+  /* neutraliza fórmulas de hoja de cálculo (= + - @ tab CR) salvo números simples */
+  if(/^[\s]*[=+\-@\t\r]/.test(v) && !/^[+\-]?[0-9][0-9.,]*$/.test(v)){ v="'"+v; }
+  if(v.indexOf(';')>-1 || v.indexOf('"')>-1 || v.indexOf('\n')>-1 || v.indexOf('\r')>-1){
     v='"'+v.replace(/"/g,'""')+'"';
   }
   return v;
@@ -2713,7 +2895,7 @@ function csvMovs(){
     if(m.t==='E' || m.t==='R'){ tipo+=' ('+eoKind(m.eo).toUpperCase()+')'; }
     var cu = (m.t==='I' || m.t==='R') ? (m.p||0) : r.avg;
     var pv = m.pid? findProv(m.pid) : null;
-    out+=dmy(m.f)+';'+csvField(m.num)+';'+tipo+';'
+    out+=csvField(dmy(m.f))+';'+csvField(m.num)+';'+csvField(tipo)+';'
       +csvField(mt?mt.cod:'')+';'+csvField(mt?mt.nom:'')+';'+csvField(mt?mt.und:'')+';'
       +csvNum(m.q,2)+';'+csvNum(cu,2)+';'
       +csvField(almName(m.alm))+';'+csvField(m.almTo?almName(m.almTo):'')+';'
@@ -2728,12 +2910,12 @@ function csvKardex(){
   var mid=PICK.kar;
   if(!mid){ toast('Selecciona un material.'); return; }
   var mt=findMat(mid);
-  var out='\uFEFFKardex valorizado (prom. ponderado);'+csvField(mt.cod+' — '+mt.nom)+';Unidad: '+mt.und+'\n';
+  var out='\uFEFFKardex valorizado (prom. ponderado);'+csvField(mt.cod+' — '+mt.nom)+';Unidad: '+csvField(mt.und)+'\n';
   out+='Fecha;Documento;Detalle;Entrada;Salida;Saldo;Costo prom (S/);Valorizado (S/)\n';
   for(var i=0;i<STATE.rows.length;i++){
     var r=STATE.rows[i];
     if(r.mid!==mid){ continue; }
-    out+=dmy(r.f)+';'+csvField(r.num)+';'+csvField(movDetail(r.m,mt))+';'
+    out+=csvField(dmy(r.f))+';'+csvField(r.num)+';'+csvField(movDetail(r.m,mt))+';'
       +(r.ent?csvNum(r.ent,2):'')+';'+(r.sal?csvNum(r.sal,2):'')+';'
       +csvNum(r.saldo,2)+';'+csvNum(r.avg,2)+';'+csvNum(r.valSaldo,2)+'\n';
   }
@@ -2748,7 +2930,7 @@ function csvPrecios(){
   out+='Fecha;Proveedor;Cantidad;Precio unit (S/);Variación %\n';
   for(var i=0;i<hist.length;i++){
     var h=hist[i];
-    out+=dmy(h.f)+';'+csvField(h.prov)+';'+csvNum(h.q,2)+';'+csvNum(h.p,2)+';'
+    out+=csvField(dmy(h.f))+';'+csvField(h.prov)+';'+csvNum(h.q,2)+';'+csvNum(h.p,2)+';'
       +((h.delta===null||h.delta===undefined)?'':csvNum(h.delta,1))+'\n';
   }
   dl('precios_'+mt.cod+'_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
@@ -2761,7 +2943,7 @@ function csvProvs(){
     var p=list[i], st=provStats(p.id);
     out+=csvField(p.ruc||'')+';'+csvField(p.nom)+';'+csvField(p.con||'')+';'+csvField(p.tel||'')+';'
       +csvField(p.dir||'')+';'+csvField(p.ciu||'')+';'+csvField(p.obs||'')+';'
-      +st.n+';'+csvNum(st.tot,2)+';'+dmy(st.last)+'\n';
+      +st.n+';'+csvNum(st.tot,2)+';'+csvField(dmy(st.last))+'\n';
   }
   dl('proveedores_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
 }
@@ -2782,7 +2964,7 @@ function csvOCs(){
       }
       pct = qT>EPS? csvNum(rT/qT*100,0) : '';
     }
-    out+=csvField(ocNumShow(oc))+';'+dmy(oc.fAdj||oc.f)+';'+csvField(st.label)+';'
+    out+=csvField(ocNumShow(oc))+';'+csvField(dmy(oc.fAdj||oc.f))+';'+csvField(st.label)+';'
       +csvField(pv?pv.nom:'')+';'+csvField(pv?(pv.ruc||''):'')+';'
       +oc.items.length+';'+csvNum(tot,2)+';'+pct+'\n';
   }
@@ -2874,6 +3056,7 @@ function loanByLk(db, lk){
   return null;
 }
 function stSetMany(pairs, cb){
+  gdDirty();
   cb=once(cb||function(){});
   if(ST.mode==='idb'){
     try{
@@ -2926,7 +3109,7 @@ function eoAsk(localMid, need, back){
   var mt=findMat(localMid);
   if(!mt){ return; }
   var os=otherStock(mt.cod);
-  if(!os.length){ toast('Ninguna otra obra tiene saldo de '+mt.nom+'.'); return; }
+  if(!os.length){ toast('Ninguna otra obra tiene saldo de '+esc(mt.nom)+'.'); return; }
   EO={ dir:'R', mode:'P', other:os[0].id, mid:os[0].mid, ref:null };
   eoBackTo = back || (OC_SEL? 'oc' : 'ing');
   $('eoQ').value = need>EPS? Math.min(need, os[0].q) : '';
@@ -3105,7 +3288,7 @@ function eoSave(){
   $('eoQ').value=''; $('eoObs').value='';
   renderAll();
   eoRender();
-  toast(mine.num+' registrado ✓ ('+eoKind(mode).toLowerCase()+')', 3200);
+  toast(esc(mine.num)+' registrado ✓ ('+eoKind(mode).toLowerCase()+')', 3200);
   backupReminder();
 }
 function eoAnular(m){
@@ -3119,7 +3302,9 @@ function eoAnular(m){
   if(!o && META.projects.length>1 && findProj(m.obra)){ alert('Espera un momento: cargando la otra obra.'); return; }
   var pair=null, pairIdx=-1;
   if(o){
-    for(i=0;i<o.db.movs.length;i++){ if(o.db.movs[i].lk===m.lk && o.db.movs[i].t!==m.t){ pair=o.db.movs[i]; pairIdx=i; break; } }
+    for(i=0;i<o.db.movs.length;i++){ var cand=o.db.movs[i];
+      /* el par debe apuntar de vuelta a esta obra y a este documento (evita borrar movimientos de otra obra por un lk importado) */
+      if(cand.lk===m.lk && cand.t!==m.t && cand.obra===CUR && (!cand.numO || cand.numO===m.num) && (!m.numO || m.numO===cand.num)){ pair=cand; pairIdx=i; break; } }
   }
   /* quitar un ingreso exige que el saldo no quede negativo */
   if(m.t==='R' && stockAlm(m.mid, m.alm)-m.q < -EPS){
@@ -3142,7 +3327,7 @@ function eoAnular(m){
   }
   renderAll();
   if(!$('v-eo').className.match(/hidden/)){ eoRender(); }
-  toast(m.num+' anulado.');
+  toast(esc(m.num)+' anulado.');
 }
 function loanHTML(l, fromDb, obraNom, withBtn){
   var mt=matIn(fromDb, l.mid);
@@ -3247,7 +3432,8 @@ function backup(){
   toast('Respaldo de la obra descargado.');
 }
 function collectAll(cb){
-  var out={ app:'almacen_obra', tipo:'completo', ver:4, fecha:new Date().toISOString(), active:CUR, projects:[] };
+  var out={ app:'almacen_obra', tipo:'completo', ver:4, fecha:new Date().toISOString(), active:CUR,
+    empresa:{ nom:EMP.nom, ruc:EMP.ruc }, projects:[] };
   var list=META.projects.slice(0), i=0;
   function next(){
     if(i>=list.length){ cb(null, out); return; }
@@ -3264,7 +3450,7 @@ function collectAll(cb){
 function backupAll(){
   collectAll(function(err, obj){
     if(err){ alert('No se pudo leer una de las obras para el respaldo.'); return; }
-    dl('respaldo_almacen_COMPLETO_'+todayISO()+'.json','application/json',JSON.stringify(obj));
+    dl('respaldo_almacen_COMPLETO_'+slug(EMP.nom)+'_'+todayISO()+'.json','application/json',JSON.stringify(obj));
     markBackup();
     toast('Respaldo completo descargado ('+obj.projects.length+' obras).');
   });
@@ -3279,7 +3465,7 @@ function shareAll(){
   collectAll(function(err, obj){
     if(err){ alert('No se pudo leer una de las obras para el respaldo.'); return; }
     var f;
-    try{ f=new File([JSON.stringify(obj)],'respaldo_almacen_COMPLETO_'+todayISO()+'.json',{type:'application/json'}); }
+    try{ f=new File([JSON.stringify(obj)],'respaldo_almacen_COMPLETO_'+slug(EMP.nom)+'_'+todayISO()+'.json',{type:'application/json'}); }
     catch(e){ backupAll(); return; }
     try{
       navigator.share({ files:[f], title:'Respaldo almacén de obra' }).then(function(){
@@ -3288,9 +3474,90 @@ function shareAll(){
     }catch(e2){ backupAll(); }
   });
 }
-function isFullBackup(o){ return o && o.tipo==='completo' && o.projects && o.projects.length!==undefined; }
-function isProjBackup(o){ return o && o.mats && o.movs; }
+function isArr(x){ return Object.prototype.toString.call(x)==='[object Array]'; }
+function isFullBackup(o){ return !!(o && typeof o==='object' && o.tipo==='completo' && isArr(o.projects)); }
+function isProjBackup(o){ return !!(o && typeof o==='object' && isArr(o.mats) && isArr(o.movs)); }
+/* Validación estricta de un respaldo ajeno: ids/vínculos con charset seguro, fechas ISO, listas como arreglos.
+   Devuelve '' si es válido, o el motivo del rechazo. */
+var SAFE_ID=/^[A-Za-z0-9_.:-]{1,64}$/;
+var ID_KEYS={id:1,mid:1,pid:1,alm:1,almTo:1,lk:1,obra:1,ref:1,oc:1,ocid:1,win:1};
+var DATE_KEYS={f:1,fAdj:1};
+function checkRecord(r, where){
+  var k, v;
+  if(!r || typeof r!=='object'){ return where+': registro inválido'; }
+  for(k in r){
+    if(!Object.prototype.hasOwnProperty.call(r,k)){ continue; }
+    v=r[k];
+    if(k==='__proto__' || k==='constructor' || k==='prototype'){ return where+': clave no permitida'; }
+    if(ID_KEYS[k]===1 && v!==null && v!=='' && v!==undefined){
+      if((typeof v!=='string' && typeof v!=='number') || !SAFE_ID.test(''+v) || /^(__proto__|constructor|prototype|hasownproperty|tostring|valueof)$/i.test(''+v)){ return where+'.'+k+': identificador no válido'; }
+    }
+    if(DATE_KEYS[k]===1 && v!==null && v!=='' && v!==undefined){
+      if(typeof v!=='string' || !/^\d{4}-\d{2}-\d{2}/.test(v) || v.length>32){ return where+'.'+k+': fecha no válida'; }
+    }
+  }
+  return '';
+}
+function validateBackupDB(db){
+  var lists=['mats','movs','provs','ocs','alms'], i, j, e, l, it;
+  if(!db || typeof db!=='object'){ return 'estructura no válida'; }
+  if(db.seq!==undefined && db.seq!==null){
+    if(typeof db.seq!=='object' || isArr(db.seq)){ return 'seq: estructura no válida'; }
+    for(var sq in db.seq){
+      if(Object.prototype.hasOwnProperty.call(db.seq,sq) && !/^\d{1,9}$/.test(''+db.seq[sq])){ return 'seq.'+sq+': contador no válido'; }
+    }
+  }
+  var tops=['obra','empresa','encargado'];
+  for(i=0;i<tops.length;i++){
+    if(db[tops[i]]!==undefined && db[tops[i]]!==null && typeof db[tops[i]]!=='string'){ return tops[i]+': debe ser texto'; }
+  }
+  if(db.brand!==undefined && db.brand!==null && (typeof db.brand!=='object' || isArr(db.brand))){ return 'brand: estructura no válida'; }
+  for(i=0;i<lists.length;i++){
+    l=db[lists[i]];
+    if(l===undefined){ continue; }
+    if(!isArr(l)){ return lists[i]+': debe ser una lista'; }
+    for(j=0;j<l.length;j++){
+      e=checkRecord(l[j], lists[i]+'['+j+']'); if(e){ return e; }
+      if(lists[i]==='movs' && l[j].t!==undefined && !/^[ISTDQOER]$/.test(''+l[j].t)){ return 'movs['+j+'].t: tipo no válido'; }
+      if(lists[i]==='ocs'){
+        var sub=['items','cots'], s2;
+        for(s2=0;s2<2;s2++){
+          it=l[j][sub[s2]];
+          if(it===undefined){ continue; }
+          if(!isArr(it)){ return 'ocs['+j+'].'+sub[s2]+': debe ser una lista'; }
+          for(var q2=0;q2<it.length;q2++){ e=checkRecord(it[q2], 'ocs['+j+'].'+sub[s2]+'['+q2+']'); if(e){ return e; } }
+        }
+      }
+    }
+  }
+  return '';
+}
 function projEmpty(db){ return !db.mats.length && !db.movs.length && !db.provs.length && !db.ocs.length; }
+function checkFull(obj){
+  var valid=0, bad='';
+  for(var i=0;i<obj.projects.length;i++){
+    if(obj.projects[i] && isProjBackup(obj.projects[i].db)){
+      bad=validateBackupDB(obj.projects[i].db)||validateBackupDB({provs:obj.projects[i].db.provs});
+      if(!bad && obj.projects[i].id!==undefined && obj.projects[i].id!==null && !SAFE_ID.test(''+obj.projects[i].id)){ bad='projects['+i+'].id: identificador no válido'; }
+      if(bad){ return { err:'Respaldo rechazado por seguridad: '+bad, n:0 }; }
+      valid++;
+    }
+  }
+  if(!valid){ return { err:'El respaldo completo no contiene obras válidas.', n:0 }; }
+  return { err:'', n:valid };
+}
+function fullEmpName(obj){
+  return (obj && obj.empresa && typeof obj.empresa==='object' && typeof obj.empresa.nom==='string')? trim(obj.empresa.nom).substring(0,80) : '';
+}
+function fullItems(obj){
+  var items=[];
+  for(var i=0;i<obj.projects.length;i++){
+    if(obj.projects[i] && isProjBackup(obj.projects[i].db)){
+      items.push({old:obj.projects[i].id||null, db:obj.projects[i].db});
+    }
+  }
+  return items;
+}
 function restoreFile(file){
   var fr=new FileReader();
   fr.onload=function(){
@@ -3298,14 +3565,18 @@ function restoreFile(file){
     try{ obj=JSON.parse(fr.result); }catch(e){ alert('El archivo no es un respaldo válido.'); return; }
     var btns='';
     if(isFullBackup(obj)){
-      var valid=0;
-      for(var i=0;i<obj.projects.length;i++){ if(obj.projects[i] && isProjBackup(obj.projects[i].db)){ valid++; } }
-      if(!valid){ alert('El respaldo completo no contiene obras válidas.'); return; }
-      $('rInfo').innerHTML='Respaldo completo del '+esc(dmy((''+(obj.fecha||'')).substring(0,10)))+' con <b>'+valid+'</b> obra(s).';
+      var chk=checkFull(obj);
+      if(chk.err){ alert(chk.err); return; }
+      var valid=chk.n, en=fullEmpName(obj);
+      $('rInfo').innerHTML='Respaldo completo del '+esc(dmy((''+(obj.fecha||'')).substring(0,10)))+' con <b>'+valid+'</b> obra(s)'
+        +(en?(' de la empresa <b>'+esc(en)+'</b>'):'')+'. Se importará en la empresa activa: <b>'+esc(EMP.nom)+'</b>.'
+        +(en && en.toLowerCase()!==EMP.nom.toLowerCase() && EMP.nom!==EMP_DEF?'<br>⚠ El respaldo es de otra empresa. Si quieres mantenerlas separadas, crea antes la empresa en «Empresa → Nueva empresa» y luego importa allí.':'');
       btns='<button class="btn dark sm" data-rst="addall">Agregar como obras nuevas (no borra nada)</button>'
         +'<button class="btn ghost sm" data-rst="replaceall">Reemplazar TODAS las obras de este teléfono…</button>';
     }else if(isProjBackup(obj)){
-      $('rInfo').innerHTML='Respaldo de una obra: <b>'+esc(projName(obj))+'</b> · '+obj.mats.length+' materiales · '+obj.movs.length+' movimientos.';
+      var bad1=validateBackupDB(obj);
+      if(bad1){ alert('Respaldo rechazado por seguridad: '+bad1); return; }
+      $('rInfo').innerHTML='Respaldo de una obra: <b>'+esc(projName(obj))+'</b> · '+(obj.mats.length|0)+' materiales · '+(obj.movs.length|0)+' movimientos.';
       btns='<button class="btn dark sm" data-rst="addone">Agregar como obra nueva (no borra nada)</button>'
         +'<button class="btn ghost sm" data-rst="replaceone">Reemplazar la obra activa («'+esc(projName(DB))+'»)…</button>';
     }else{
@@ -3318,11 +3589,11 @@ function restoreFile(file){
   fr.readAsText(file);
 }
 function closeRestore(){ $('rmodal').className='modal np hidden'; pendingRestore=null; }
-function addProjects(items, cb){
+function addProjects(items, cb, noReplaceEmpty){
   /* guarda cada obra con id nuevo (remapeando los enlaces entre obras);
      si la única obra actual está vacía, la reemplaza */
-  var replaceEmpty = META.projects.length===1 && projEmpty(DB);
-  var oldId=CUR, firstId=null, i=0, j, k2, idmap={}, dbs=[];
+  var replaceEmpty = !noReplaceEmpty && META.projects.length===1 && projEmpty(DB);
+  var oldId=CUR, firstId=null, i=0, j, k2, idmap={}, dbs=[], errs=0;
   for(j=0;j<items.length;j++){
     var nid=genId('w')+j;
     if(items[j].old){ idmap[items[j].old]=nid; }
@@ -3334,7 +3605,7 @@ function addProjects(items, cb){
       var mv=dbs[j].movs[k2];
       /* enlaces a obras que no vienen en el respaldo se desvinculan (queda solo el nombre)
          para no tocar movimientos de obras reales al anular o devolver */
-      if(mv.obra){ mv.obra = idmap[mv.obra] || null; }
+      if(mv.obra){ mv.obra = Object.prototype.hasOwnProperty.call(idmap,mv.obra) ? idmap[mv.obra] : null; }
     }
   }
   function next(){
@@ -3344,13 +3615,13 @@ function addProjects(items, cb){
         stDel(pKey(oldId));
       }
       saveMeta();
-      cb(firstId);
+      cb(firstId, errs);
       return;
     }
     var id=items[i].nid, db=dbs[i++];
     if(!firstId){ firstId=id; }
     META.projects.push({id:id, nom:projName(db)});
-    stSet(pKey(id), db, function(err){ if(err){ saveErr(err); } next(); });
+    stSet(pKey(id), db, function(err){ if(err){ errs++; if(!noReplaceEmpty){ saveErr(err); } } next(); });
   }
   next();
 }
@@ -3379,13 +3650,16 @@ function doRestore(mode){
     return;
   }
   if(mode==='replaceall'){
-    var r=prompt('Se borrarán las '+META.projects.length+' obras de este teléfono y se cargarán las '+dbs.length+' del respaldo. Escribe BORRAR para confirmar:');
+    var r=prompt('Se borrarán las '+META.projects.length+' obras de la empresa «'+EMP.nom+'» en este teléfono y se cargarán las '+dbs.length+' del respaldo. Escribe BORRAR para confirmar:');
     if(r!=='BORRAR'){ return; }
-    var old=META.projects.slice(0);
-    for(i=0;i<old.length;i++){ stDel(pKey(old[i].id)); }
-    META.projects=[];
-    CUR=null;
-    DB={mats:[],movs:[],provs:[],ocs:[]};
+    closeRestore();
+    if(persist){
+      replaceAllProjects(items, function(firstId, err){
+        if(err){ alert(err); return; }
+        openProject(firstId, function(){ afterSwitch(); toast(dbs.length+' obra(s) importada(s) ✓', 3200); });
+      });
+      return;
+    }
   }
   closeRestore();
   if(!persist){
@@ -3399,6 +3673,24 @@ function doRestore(mode){
     });
   });
 }
+/* Reemplaza todas las obras de la empresa: escribe primero las nuevas y solo si todo
+   se guardó borra las anteriores (si algo falla, se conservan las anteriores). */
+function replaceAllProjects(items, cb){
+  var old=META.projects.slice(0), i, k, keep={};
+  META.projects=[];
+  addProjects(items, function(firstId, errs){
+    if(errs || !firstId){
+      for(i=0;i<META.projects.length;i++){ stDel(pKey(META.projects[i].id)); }
+      META.projects=old; saveMeta();
+      cb(null, 'No se pudo guardar el respaldo en este teléfono (¿sin espacio?). Tus datos anteriores se conservan.');
+      return;
+    }
+    for(k=0;k<META.projects.length;k++){ keep[META.projects[k].id]=1; }
+    for(i=0;i<old.length;i++){ if(!Object.prototype.hasOwnProperty.call(keep, old[i].id)){ stDel(pKey(old[i].id)); } }
+    saveMeta();
+    cb(firstId, '');
+  }, true);
+}
 function afterSwitch(){
   provPickClear();
   var xs=['ing','sal','kar','oc'];
@@ -3411,7 +3703,7 @@ function afterSwitch(){
 function switchProject(id){
   if(id===CUR || !findProj(id)){ return; }
   if(!persist){ return; }
-  openProject(id, function(){ afterSwitch(); toast('Obra: '+projName(DB)); });
+  openProject(id, function(){ afterSwitch(); toast('Obra: '+esc(projName(DB))); });
 }
 function openNewProj(){
   $('wNom').value='';
@@ -3429,7 +3721,7 @@ function saveNewProj(){
   var nd=defaultDB(), i;
   nd.obra=nom;
   nd.pisos=clampPisos($('wPisos').value);
-  nd.empresa=DB.empresa||'';
+  nd.empresa=DB.empresa||(EMP.nom!==EMP_DEF? EMP.nom : '');
   nd.brand={ nom:(DB.brand&&DB.brand.nom)||'', cip:(DB.brand&&DB.brand.cip)||'', cel:(DB.brand&&DB.brand.cel)||'' };
   if($('wCopyMat').checked){
     for(i=0;i<DB.mats.length;i++){ var m=DB.mats[i]; nd.mats.push({id:m.id,cod:m.cod,nom:m.nom,und:m.und,min:m.min||0}); }
@@ -3446,7 +3738,7 @@ function saveNewProj(){
   stSet(pKey(id), nd, function(err){
     if(err){ saveErr(err); return; }
     closeNewProj();
-    openProject(id, function(){ afterSwitch(); toast('Obra creada: '+nom); });
+    openProject(id, function(){ afterSwitch(); toast('Obra creada: '+esc(nom)); });
   });
 }
 function delProject(){
@@ -3473,7 +3765,321 @@ function seed(){
   toast(added? (added+' materiales agregados al catálogo.') : 'El catálogo base ya estaba cargado.');
 }
 
+/* ===================== Google Drive (v7) =====================
+   Un archivo JSON por empresa (= respaldo completo). Permiso drive.file: la app solo ve
+   los archivos que ella creó. Se detectan cambios de otro equipo por la «version» del archivo. */
+function gdCid(){ var c=lsGet(GD_KEY); return trim((c && c.cid) || GD_CID_DEF); }
+function gdCidOk(c){ return /^[0-9]{3,30}-[a-z0-9]{8,64}\.apps\.googleusercontent\.com$/.test(c); }
+function gdState(){
+  if(!META.drive || typeof META.drive!=='object'){ META.drive={}; }
+  var d=META.drive;
+  if(typeof d.fileId!=='string' || (d.fileId && !/^[A-Za-z0-9_-]{10,200}$/.test(d.fileId))){ d.fileId=''; }
+  if(d.auto===undefined){ d.auto=true; }
+  d.ver = d.ver? ''+d.ver : '';
+  d.dirty=!!d.dirty;
+  return d;
+}
+function gdOriginOk(){ return /^https:$/.test(location.protocol) || /^http:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(location.href); }
+function gdHasTok(){ return !!(GD.tok && new Date().getTime() < GD.exp-60000); }
+function gdDirty(){
+  if(GD.applying || !META){ return; }
+  GD.gen++;
+  var d=gdState();
+  if(!d.fileId){ return; }
+  if(!d.dirty){ d.dirty=true; saveMeta(); }
+  gdChip();
+  if(d.auto && gdHasTok() && !GD.conflict){
+    if(GD.timer){ clearTimeout(GD.timer); }
+    GD.timer=setTimeout(function(){ GD.timer=null; gdAutoUpload(); }, 15000);
+  }
+}
+function gdLoadLib(cb){
+  cb=once(cb||function(){});
+  if(window.google && google.accounts && google.accounts.oauth2){ GD.lib=true; cb(null); return; }
+  if(!gdOriginOk()){ cb('Google Drive solo funciona desde el link publicado (https).'); return; }
+  if(GD.libLoading){ cb('Cargando Google… vuelve a tocar en unos segundos.'); return; }
+  GD.libLoading=true;
+  var sc=document.createElement('script');
+  sc.src='https://accounts.google.com/gsi/client';
+  sc.async=true;
+  var to=setTimeout(function(){ GD.libLoading=false; cb('No se pudo cargar Google (¿sin internet?).'); }, 15000);
+  sc.onload=function(){ clearTimeout(to); GD.libLoading=false; GD.lib=!!(window.google && google.accounts && google.accounts.oauth2); cb(GD.lib? null : 'Google no respondió.'); };
+  sc.onerror=function(){ clearTimeout(to); GD.libLoading=false; cb('No se pudo cargar Google (¿sin internet?).'); };
+  document.head.appendChild(sc);
+}
+/* Debe llamarse dentro del toque del usuario: la ventana de Google es un popup. */
+function gdToken(cb){
+  cb=once(cb);
+  if(gdHasTok()){ cb(null); return; }
+  var cid=gdCid();
+  if(!cid){ cb('Falta el «ID de cliente de Google». Pégalo abajo en esta misma tarjeta (ver instrucciones).'); return; }
+  if(!GD.lib){ gdLoadLib(function(err){ cb(err || 'Google ya está listo: vuelve a tocar el botón.'); }); return; }
+  try{
+    var tc=google.accounts.oauth2.initTokenClient({
+      client_id:cid, scope:GD_SCOPE,
+      callback:function(r){
+        if(r && r.access_token){
+          GD.tok=r.access_token;
+          GD.exp=new Date().getTime()+(parseInt(r.expires_in,10)||3600)*1000;
+          var d=gdState(); if(!d.consent){ d.consent=true; saveMeta(); }
+          cb(null);
+        }else{ cb('Google no dio permiso'+(r && r.error? (' ('+r.error+')') : '')+'.'); }
+      },
+      error_callback:function(e){
+        var t=e && e.type;
+        cb(t==='popup_closed'? 'Cerraste la ventana de Google.' : (t==='popup_failed_to_open'? 'El navegador bloqueó la ventana de Google: permite ventanas emergentes para este sitio.' : 'No se pudo abrir Google'+(t?(' ('+t+')'):'')+'.'));
+      }
+    });
+    tc.requestAccessToken({ prompt: gdState().consent? '' : 'consent' });
+  }catch(e){ cb('Error al iniciar Google: '+(e && e.message || e)); }
+}
+function gdReq(method, url, body, ctype, cb){
+  cb=once(cb);
+  var x;
+  try{
+    x=new XMLHttpRequest();
+    x.open(method, url, true);
+    x.setRequestHeader('Authorization', 'Bearer '+GD.tok);
+    if(ctype){ x.setRequestHeader('Content-Type', ctype); }
+    x.timeout=90000;
+  }catch(e){ cb('No se pudo conectar con Drive.'); return; }
+  x.onload=function(){
+    var j=null;
+    try{ j=JSON.parse(x.responseText); }catch(e2){}
+    if(x.status>=200 && x.status<300){ cb(null, j, x.responseText, x.status); return; }
+    if(x.status===401){ GD.tok=null; GD.exp=0; }
+    cb('Drive respondió '+x.status+(j && j.error && j.error.message? (': '+j.error.message) : '')+'.', j, '', x.status);
+  };
+  x.onerror=function(){ cb('Sin conexión con Google Drive.', null, '', 0); };
+  x.ontimeout=function(){ cb('Google Drive tardó demasiado en responder.', null, '', 0); };
+  try{ x.send(body===undefined? null : body); }catch(e3){ cb('No se pudo enviar a Drive.', null, '', 0); }
+}
+function gdMeta(id, cb){ gdReq('GET', GD_API+'/'+encodeURIComponent(id)+'?fields='+GD_FIELDS, null, null, cb); }
+function gdList(cb){
+  var q="appProperties has { key='almacencalc' and value='1' } and trashed=false";
+  gdReq('GET', GD_API+'?q='+encodeURIComponent(q)+'&orderBy=modifiedTime%20desc&pageSize=50&fields=files('+GD_FIELDS+')', null, null, cb);
+}
+function gdFileName(){ return 'AlmacenCalc - '+EMP.nom.replace(/[\\\/:*?"<>|]+/g,' ')+'.json'; }
+function gdCreate(content, cb){
+  var b='almacen'+(new Date().getTime())+'x'+Math.floor(Math.random()*1e6);
+  var meta={ name:gdFileName(), mimeType:'application/json',
+    appProperties:{ almacencalc:'1', emp:EMP.nom.substring(0,60) } };
+  var body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n'
+    +'--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+content+'\r\n--'+b+'--';
+  gdReq('POST', GD_UP+'?uploadType=multipart&fields='+GD_FIELDS, body, 'multipart/related; boundary='+b, cb);
+}
+function gdUpdate(id, content, cb){
+  gdReq('PATCH', GD_UP+'/'+encodeURIComponent(id)+'?uploadType=media&fields='+GD_FIELDS, content, 'application/json; charset=UTF-8', cb);
+}
+function gdWhen(iso){
+  if(!iso){ return '—'; }
+  var t=new Date(iso);
+  if(isNaN(t.getTime())){ return '—'; }
+  return dmy(t.getFullYear()+'-'+pad(t.getMonth()+1,2)+'-'+pad(t.getDate(),2))+' '+pad(t.getHours(),2)+':'+pad(t.getMinutes(),2);
+}
+function gdSetMsg(m){ GD.msg=m||''; renderGd(); }
+function gdFail(err){ GD.busy=false; gdSetMsg(''); alert(''+err); }
+/* Botón principal: decide si sube, trae o hay conflicto. */
+function gdSync(){
+  if(GD.busy){ toast('Drive: operación en curso…'); return; }
+  if(!persist){ alert('Esta vista no guarda datos: abre la app desde el link publicado.'); return; }
+  gdToken(function(err){
+    if(err){ alert(err); return; }
+    var d=gdState();
+    if(!d.fileId){ gdLinkStart(); return; }
+    GD.busy=true; gdSetMsg('Revisando Drive…');
+    gdMeta(d.fileId, function(err2, f, raw, status){
+      if(err2 && status!==404){ gdFail(err2); return; }
+      if(status===404 || !f || f.trashed){
+        GD.busy=false; gdSetMsg('');
+        if(confirm('El archivo de esta empresa ya no está en Drive (borrado o en la papelera). ¿Crear uno nuevo con los datos de este teléfono?')){
+          d.fileId=''; d.ver=''; saveMeta(); gdUpload(null, false);
+        }
+        return;
+      }
+      var remoteChanged = (''+f.version)!==d.ver;
+      if(!remoteChanged && !d.dirty){ GD.busy=false; GD.conflict=false; d.at=new Date().toISOString(); saveMeta(); gdSetMsg(''); toast('☁ Drive: todo al día ✓'); return; }
+      if(!remoteChanged){ gdUpload(f, true); return; }
+      GD.busy=false; gdSetMsg('');
+      if(!d.dirty){
+        if(confirm('Hay datos más nuevos en Drive (guardados el '+gdWhen(f.modifiedTime)+' desde otro equipo).\n\n¿Traerlos a este teléfono? Reemplazan las obras de «'+EMP.nom+'» en este teléfono.')){ gdPull(f); }
+        return;
+      }
+      gdConflict(f);
+    });
+  });
+}
+function gdConflict(f){
+  GD.conflict=true; renderGd();
+  if(confirm('⚠ CONFLICTO: este teléfono y Drive tienen cambios distintos desde la última sincronización (Drive: '+gdWhen(f.modifiedTime)+').\n\nAceptar = TRAER lo de Drive (antes se descarga en este teléfono un respaldo de lo tuyo).\nCancelar = ver otras opciones.')){
+    var genB=GD.gen;
+    collectAll(function(err, obj){
+      if(err){ alert('No se pudo armar el respaldo de seguridad; no se trajo nada.'); return; }
+      dl('respaldo_almacen_ANTES_DE_DRIVE_'+slug(EMP.nom)+'_'+todayISO()+'.json','application/json',JSON.stringify(obj));
+      gdPull(f, genB);
+    });
+    return;
+  }
+  var r=prompt('Escribe SUBIR para reemplazar lo de Drive con lo de este teléfono (Drive conserva la versión anterior en su historial). Deja vacío para no hacer nada:');
+  if(r==='SUBIR'){ gdUpload(null, false, true); }
+}
+/* f: metadatos recién leídos (null = leerlos aquí). checked: ya se comprobó la versión. */
+function gdUpload(f, checked, force){
+  var d=gdState();
+  GD.busy=true; gdSetMsg('Subiendo a Drive…');
+  function go(){
+    var gen=GD.gen;
+    collectAll(function(err, obj){
+      if(err){ gdFail('No se pudo leer una de las obras para subirla.'); return; }
+      var content=JSON.stringify(obj);
+      var done=function(err2, nf){
+        if(err2 || !nf || !nf.id){ gdFail(err2 || 'Drive no devolvió el archivo.'); return; }
+        GD.busy=false; GD.conflict=false;
+        d.fileId=nf.id; d.ver=''+nf.version; d.at=new Date().toISOString();
+        if(GD.gen===gen){ d.dirty=false; }
+        META.lastBackup=d.at;
+        saveMeta(); gdSetMsg(''); renderBackupInfo();
+        toast('☁ Subido a Drive ✓');
+        if(d.dirty && d.auto && gdHasTok()){ gdDirty(); }
+      };
+      if(d.fileId){ gdUpdate(d.fileId, content, done); } else { gdCreate(content, done); }
+    });
+  }
+  if(!d.fileId || checked || force){ go(); return; }
+  gdMeta(d.fileId, function(err, mf){
+    if(err){ gdFail(err); return; }
+    if(mf.trashed || (''+mf.version)!==d.ver){ GD.busy=false; gdSetMsg(''); gdConflict(mf); return; }
+    go();
+  });
+}
+function gdAutoUpload(){
+  var d=gdState();
+  if(GD.busy || !d.fileId || !d.dirty || !d.auto || !gdHasTok() || GD.conflict){ renderGd(); return; }
+  GD.busy=true; gdSetMsg('Revisando Drive…');
+  gdMeta(d.fileId, function(err, f){
+    if(err || !f){ GD.busy=false; gdSetMsg(''); return; }
+    if(f.trashed || (''+f.version)!==d.ver){ GD.busy=false; GD.conflict=true; gdSetMsg(''); toast('⚠ Drive tiene cambios de otro equipo: toca «Sincronizar».', 4000); return; }
+    gdUpload(f, true);
+  });
+}
+/* gen0: valor de GD.gen cuando se decidió traer. Si el operador guarda algo mientras se
+   descarga, no se reemplaza en silencio: se pasa a conflicto (con respaldo que incluye ese cambio). */
+function gdPull(f, gen0){
+  var d=gdState();
+  if(gen0===undefined){ gen0=GD.gen; }
+  GD.busy=true; gdSetMsg('Descargando de Drive…');
+  gdReq('GET', GD_API+'/'+encodeURIComponent(f.id)+'?alt=media', null, null, function(err, j, raw){
+    if(err){ gdFail(err); return; }
+    var obj=null;
+    try{ obj=JSON.parse(raw); }catch(e){ obj=null; }
+    if(!isFullBackup(obj)){ gdFail('El archivo de Drive no es un respaldo completo válido.'); return; }
+    var chk=checkFull(obj);
+    if(chk.err){ gdFail(chk.err); return; }
+    var en=fullEmpName(obj);
+    if(en && en.toLowerCase()!==EMP.nom.toLowerCase() && EMP.nom!==EMP_DEF
+       && !confirm('El archivo de Drive es de la empresa «'+en+'» y la empresa activa es «'+EMP.nom+'». ¿Traerlo igual a esta empresa?')){ GD.busy=false; gdSetMsg(''); return; }
+    if(GD.gen!==gen0){
+      GD.busy=false; gdSetMsg('');
+      alert('Guardaste cambios mientras se descargaba de Drive: no se reemplazó nada. Revisa el conflicto a continuación.');
+      gdConflict(f);
+      return;
+    }
+    GD.applying=true;
+    replaceAllProjects(fullItems(obj), function(firstId, err2){
+      GD.applying=false;
+      if(err2){ gdFail(err2); return; }
+      if(EMP.nom===EMP_DEF && en && !empNameTaken(en)){ EMP.nom=en; if(obj.empresa && obj.empresa.ruc){ EMP.ruc=digits(obj.empresa.ruc).substring(0,11); } EMPS.named=true; empSave(); }
+      d.fileId=f.id; d.ver=''+f.version; d.at=new Date().toISOString(); d.dirty=false;
+      META.lastBackup=d.at;
+      GD.busy=false; GD.conflict=false; GD.gen++;
+      saveMeta();
+      openProject(firstId, function(){ gdSetMsg(''); afterSwitch(); toast('☁ Datos traídos de Drive ✓ ('+chk.n+' obra(s))', 3500); });
+    });
+  });
+}
+function gdLinkStart(){
+  GD.busy=true; gdSetMsg('Buscando archivos en Drive…');
+  gdList(function(err, j){
+    GD.busy=false; gdSetMsg('');
+    if(err){ alert(err); return; }
+    var files=(j && isArr(j.files))? j.files : [], html='', i, f, en;
+    GD.files=files;
+    for(i=0;i<files.length;i++){
+      f=files[i];
+      en=(f.appProperties && f.appProperties.emp) || '';
+      html+='<div class="gdfile"><b>'+esc(f.name||'archivo')+'</b><div class="note" style="margin:2px 0 6px">'
+        +(en?('Empresa: '+esc(en)+' · '):'')+'Guardado: '+esc(gdWhen(f.modifiedTime))+'</div>'
+        +'<button class="btn ghost sm" data-gdi="'+i+'">Usar este archivo (traer sus datos aquí)</button></div>';
+    }
+    $('gdMInfo').innerHTML= files.length
+      ? ('Encontré '+files.length+' archivo(s) de AlmacénCalc en tu Drive. Elige el de la empresa <b>'+esc(EMP.nom)+'</b> para traer sus datos, o crea uno nuevo con los datos de este teléfono.')
+      : ('No hay archivos de AlmacénCalc en tu Drive. Se creará uno para la empresa <b>'+esc(EMP.nom)+'</b> con los datos de este teléfono.');
+    $('gdMList').innerHTML=html;
+    $('gdModal').className='modal np';
+  });
+}
+function gdLinkPick(i){
+  var f=GD.files && GD.files[i];
+  if(!f){ return; }
+  $('gdModal').className='modal np hidden';
+  var hasData=false;
+  for(var k=0;k<META.projects.length;k++){ if(META.projects[k].id!==CUR || !projEmpty(DB)){ hasData=true; } }
+  if(hasData && !confirm('Se REEMPLAZARÁN las '+META.projects.length+' obra(s) de «'+EMP.nom+'» en este teléfono por las del archivo de Drive. Antes se descargará un respaldo de lo actual. ¿Continuar?')){ return; }
+  if(hasData){
+    var genB=GD.gen;
+    collectAll(function(err, obj){
+      if(err){ alert('No se pudo armar el respaldo de seguridad; no se trajo nada.'); return; }
+      dl('respaldo_almacen_ANTES_DE_DRIVE_'+slug(EMP.nom)+'_'+todayISO()+'.json','application/json',JSON.stringify(obj));
+      gdPull(f, genB);
+    });
+  }else{ gdPull(f); }
+}
+function gdLinkNew(){
+  $('gdModal').className='modal np hidden';
+  var d=gdState(); d.fileId=''; d.ver='';
+  gdUpload(null, false);
+}
+function gdUnlink(){
+  var d=gdState();
+  if(!d.fileId){ toast('Esta empresa no está vinculada a Drive.'); return; }
+  if(!confirm('Esta empresa dejará de sincronizarse con Drive. El archivo en Drive y los datos de este teléfono NO se borran. ¿Continuar?')){ return; }
+  META.drive={ auto:d.auto, consent:d.consent };
+  GD.conflict=false;
+  saveMeta(); renderGd(); toast('Desvinculado de Drive.');
+}
+function gdChip(){
+  var c=$('hGd'), d=META? gdState() : null;
+  if(!d || !d.fileId){ c.className='gdchip hidden'; return; }
+  if(GD.busy){ c.innerHTML='☁ …'; c.className='gdchip'; return; }
+  if(GD.conflict){ c.innerHTML='☁ revisar'; c.className='gdchip warn'; return; }
+  if(d.dirty){ c.innerHTML='☁ sin subir'; c.className='gdchip warn'; return; }
+  c.innerHTML='☁ al día'; c.className='gdchip';
+}
+function renderGd(){
+  if(!META){ return; }
+  var d=gdState(), cid=gdCid(), h;
+  if(!gdOriginOk()){
+    h='Drive solo funciona abriendo la app desde el link publicado (https://…github.io/…), no desde un archivo descargado.';
+  }else if(!cid){
+    h='Sin configurar: falta el ID de cliente de Google (abajo).';
+  }else if(!d.fileId){
+    h='Esta empresa aún no está vinculada a Drive. Toca «Sincronizar» para elegir o crear su archivo.';
+  }else{
+    h='Vinculada a Drive · última sincronización: <b>'+esc(gdWhen(d.at))+'</b>'
+      +(GD.conflict? '<br>⚠ Drive tiene cambios de otro equipo: toca «Sincronizar».' : (d.dirty? '<br>Hay cambios en este teléfono sin subir.' : '<br>Todo al día.'))
+      +(gdHasTok()? '<br>Sesión de Google abierta.' : '');
+  }
+  if(GD.msg){ h+='<br><b>'+esc(GD.msg)+'</b>'; }
+  $('gdInfo').innerHTML=h;
+  $('gdAuto').checked=!!d.auto;
+  $('bGdUnlink').className= d.fileId? 'btn ghost sm' : 'btn ghost sm hidden';
+  if(document.activeElement!==$('gdCid')){ $('gdCid').value=cid; }
+  $('gdHelp').innerHTML='Cómo obtenerlo (una sola vez, gratis): en console.cloud.google.com crea un proyecto, activa «Google Drive API», configura la pantalla de consentimiento (tipo Externo, agrega tu correo como usuario de prueba) y crea un «ID de cliente OAuth» de tipo «Aplicación web» con este origen autorizado: <b class="mono">'+esc(location.protocol+'//'+location.host)+'</b>';
+  gdChip();
+}
+
 function showView(v){
+  if(v==='mas' && gdCid() && gdOriginOk() && !GD.lib){ gdLoadLib(function(){}); }
   var views=['stock','ing','sal','kar','oc','ocd','mas','prov','provd','eo','rep'];
   for(var i=0;i<views.length;i++){
     $('v-'+views[i]).className = views[i]===v ? 'view' : 'view hidden';
@@ -3759,6 +4365,33 @@ function init(){
   });
   $('rCancel').addEventListener('click', closeRestore);
 
+  /* empresas */
+  $('empSel').addEventListener('change', function(){ empSwitch(this.value); });
+  $('bEmpNew').addEventListener('click', empNew);
+  $('bEmpRen').addEventListener('click', empRename);
+  $('bEmpDel').addEventListener('click', empDelete);
+  $('hEmp').addEventListener('click', function(){ showView('mas'); });
+
+  /* google drive */
+  $('bGdSync').addEventListener('click', gdSync);
+  $('hGd').addEventListener('click', gdSync);
+  $('gdAuto').addEventListener('change', function(){ var d=gdState(); d.auto=!!this.checked; saveMeta(); if(d.auto){ gdDirty(); } });
+  $('bGdUnlink').addEventListener('click', gdUnlink);
+  $('bGdCid').addEventListener('click', function(){
+    var c=trim($('gdCid').value);
+    if(c && !gdCidOk(c)){ alert('El ID de cliente debe verse así: 123456789012-abc123def456.apps.googleusercontent.com'); return; }
+    if(!lsSet(GD_KEY, { cid:c })){ alert('No se pudo guardar en este navegador.'); return; }
+    GD.tok=null; GD.exp=0;
+    renderGd(); toast(c? 'ID de cliente guardado.' : 'ID de cliente borrado.');
+    if(c){ gdLoadLib(function(){}); }
+  });
+  $('gdMList').addEventListener('click', function(ev){
+    var t=ev.target;
+    if(t && t.getAttribute && t.getAttribute('data-gdi')!==null){ gdLinkPick(parseInt(t.getAttribute('data-gdi'),10)); }
+  });
+  $('gdMNew').addEventListener('click', gdLinkNew);
+  $('gdMCancel').addEventListener('click', function(){ $('gdModal').className='modal np hidden'; });
+
   /* obras */
   $('projSel').addEventListener('change', function(){ switchProject(this.value); });
   $('bNewProj').addEventListener('click', openNewProj);
@@ -3809,7 +4442,12 @@ function init(){
   $('vPrint').addEventListener('click', function(){ window.print(); });
   $('vClose').addEventListener('click', function(){ $('docModal').className='modal hidden'; });
 
+  empLoad();
   load(function(){
+    if(EMP.id==='e0' && !EMPS.named && EMP.nom===EMP_DEF && trim(DB.empresa)){
+      EMP.nom=trim(DB.empresa).substring(0,80); EMPS.named=true; empSave();
+    }
+    if(gdCid() && gdState().fileId){ gdLoadLib(function(){}); }
     $('loading').className='np hidden';
     $('mainApp').className='np';
     renderAll();
@@ -3819,15 +4457,15 @@ function init(){
   });
 }
 
-if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
-  try{ navigator.serviceWorker.register('sw.js').then(null, function(){}); }catch(e){}
-}
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', init);
 }else{
   init();
 }
 })();
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  try{ navigator.serviceWorker.register('sw.js').then(null, function(){}); }catch(e){}
+}
 </script>
 </body>
 </html>
