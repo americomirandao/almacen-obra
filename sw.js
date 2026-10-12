@@ -1,6 +1,6 @@
 /* Control de Almacén de Obra — service worker (solo actúa si la app se sirve por https, p. ej. GitHub Pages).
    Guarda una copia de la app en el teléfono para que abra sin internet. Los datos del almacén NO pasan por aquí. */
-var CACHE = 'almacen-obra-v9';
+var CACHE = 'almacen-obra-v11';
 self.addEventListener('install', function (e) { self.skipWaiting(); });
 self.addEventListener('activate', function (e) {
   /* borra las copias de versiones anteriores */

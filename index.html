@@ -2,14 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-SkbsBdTylTSJRGH6B3/ej6izTkrJg4qG3XFTuR6RfKs=' https://accounts.google.com; style-src 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob:; connect-src https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2oAeszhben8Z7tIuCVmZdwLURbFpTa+SLT2rnjW1s3k=' https://accounts.google.com; style-src 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob:; connect-src https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#0F3D3E">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="format-detection" content="telephone=no">
-<title>Control de Almacén de Obra v9</title>
+<title>Control de Almacén de Obra v11</title>
 <link rel="manifest" href="manifest.webmanifest">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,.08)}
@@ -803,7 +803,10 @@ table.cmp td.need{background:#FFF4E5}
 </datalist>
 
 <script>
-/* Control de Almacén de Obra v9 — ES5, sin dependencias (Google Drive se carga solo al usarlo).
+/* Control de Almacén de Obra v11 — ES5, sin dependencias (Google Drive se carga solo al usarlo).
+   v11: refuerzos de la auditoría run-4 (ID de cliente fijo, sin token si la app está enmarcada o abierta por otra página,
+        CSV con comas citadas, datos legados validados, «Reemplazar la obra activa» sin enlaces entre obras).
+   v10: ID de cliente de Google Drive incluido (no hace falta pegarlo en cada teléfono).
    v9: paleta verde petróleo/menta.
    v8: arreglos de la auditoría run-3 (seq numérico, toasts escapados, guarda de cambios al traer de Drive, CSP).
    v7: empresas como espacios separados (una base de datos por empresa) y sincronización con Google Drive.
@@ -833,7 +836,7 @@ var SAFE_EMP  = /^e[a-z0-9]{1,20}$/;
 var EMPS = null;
 var EMP  = null;
 var GD_KEY    = 'almacen_gdrive';
-var GD_CID_DEF = '';
+var GD_CID_DEF = '317892153531-3lc7t0qlab7uloe70e17jag0o9nkhg8n.apps.googleusercontent.com';
 var GD_SCOPE  = 'https://www.googleapis.com/auth/drive.file';
 var GD_API    = 'https://www.googleapis.com/drive/v3/files';
 var GD_UP     = 'https://www.googleapis.com/upload/drive/v3/files';
@@ -1009,7 +1012,7 @@ function provName(m){
 }
 
 function canStore(){
-  try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; }
+  try{ localStorage.setItem('almacen_obra__probe','1'); localStorage.removeItem('almacen_obra__probe'); return true; }
   catch(e){ return false; }
 }
 function lsGet(k){
@@ -1176,7 +1179,7 @@ function migrate(o){
     }
     if(m.num && o.seq[m.t]!==undefined){
       var nn=parseInt((''+m.num).split('-')[1],10);
-      if(!isNaN(nn) && nn>o.seq[m.t]){ o.seq[m.t]=nn; }
+      if(!isNaN(nn) && nn>o.seq[m.t] && nn<=999999999){ o.seq[m.t]=nn; }
     }
   }
   for(i=0;i<o.ocs.length;i++){
@@ -1336,6 +1339,11 @@ function load(cb){
       }
       /* primera vez en v4: migrar datos de v1/v2/v3 sin borrarlos */
       var legacy= EMP.id==='e0'? readLegacy() : null;
+      /* los datos legados también se validan como un respaldo ajeno */
+      if(legacy && (!isProjBackup(legacy) || validateBackupDB(legacy))){
+        legacy=null;
+        alert('Se encontraron datos de una versión antigua con formato no válido; no se migraron (siguen guardados sin tocar).');
+      }
       META=defaultMeta();
       DB = legacy? migrate(legacy) : defaultDB();
       CUR=genId('w');
@@ -1597,7 +1605,7 @@ function renderBrand(){
   $('brandbar').innerHTML=esc(bl);
   $('brandbar').className = bl? 'np' : 'np hidden';
   $('stockCredit').innerHTML = bl? 'Sistema de control · '+esc(bl) : '';
-  $('masCredit').innerHTML = 'Control de Almacén de Obra v9.0'+(bl?(' · '+esc(bl)):'');
+  $('masCredit').innerHTML = 'Control de Almacén de Obra v11.0'+(bl?(' · '+esc(bl)):'');
 }
 
 function renderHeader(){
@@ -2848,7 +2856,7 @@ function csvField(v){
   v=(v===undefined||v===null)?'':''+v;
   /* neutraliza fórmulas de hoja de cálculo (= + - @ tab CR) salvo números simples */
   if(/^[\s]*[=+\-@\t\r]/.test(v) && !/^[+\-]?[0-9][0-9.,]*$/.test(v)){ v="'"+v; }
-  if(v.indexOf(';')>-1 || v.indexOf('"')>-1 || v.indexOf('\n')>-1 || v.indexOf('\r')>-1){
+  if(v.indexOf(';')>-1 || v.indexOf(',')>-1 || v.indexOf('"')>-1 || v.indexOf('\n')>-1 || v.indexOf('\r')>-1){
     v='"'+v.replace(/"/g,'""')+'"';
   }
   return v;
@@ -3121,6 +3129,10 @@ function eoStartDev(lk){
   var l=loanByLk(DB, lk);
   if(!l || l.pend<=EPS){ return; }
   if(!OTHERS[l.obra]){ alert('La otra obra ('+obraLabel(l.obra,l.obraNom)+') no está disponible en este teléfono.'); return; }
+  /* el préstamo debe tener su par auténtico en la otra obra, apuntando de vuelta a esta */
+  var pairOk=false, pm=OTHERS[l.obra].db.movs;
+  for(var pi=0;pi<pm.length;pi++){ if(pm[pi].lk===lk && pm[pi].obra===CUR){ pairOk=true; break; } }
+  if(!pairOk){ alert('Este préstamo no tiene su registro correspondiente en «'+obraLabel(l.obra,l.obraNom)+'»; no se puede devolver desde aquí.'); return; }
   EO={ dir:(l.dir==='in'?'S':'R'), mode:'D', other:l.obra, mid:null, ref:lk };
   if(l.dir==='in'){ EO.mid=l.mid; }
   else{
@@ -3645,6 +3657,8 @@ function doRestore(mode){
     if(!confirm('Se REEMPLAZARÁN los datos de «'+projName(DB)+'» por los del respaldo. Las demás obras no se tocan. ¿Continuar?')){ return; }
     STATE=null;
     DB=migrate(obj);
+    /* un respaldo de una obra no puede traer préstamos enlazados a otras obras de este teléfono */
+    for(var rk=0;rk<DB.movs.length;rk++){ if(DB.movs[rk].obra){ DB.movs[rk].obra=null; } }
     resetUIState();
     save(); closeRestore(); afterSwitch();
     toast('Respaldo importado ✓');
@@ -3769,7 +3783,12 @@ function seed(){
 /* ===================== Google Drive (v7) =====================
    Un archivo JSON por empresa (= respaldo completo). Permiso drive.file: la app solo ve
    los archivos que ella creó. Se detectan cambios de otro equipo por la «version» del archivo. */
-function gdCid(){ var c=lsGet(GD_KEY); return trim((c && c.cid) || GD_CID_DEF); }
+function gdCid(){
+  /* el ID incluido en la app manda: no se puede reemplazar desde el almacenamiento (compartido por todo el origen) */
+  if(GD_CID_DEF){ return GD_CID_DEF; }
+  var c=lsGet(GD_KEY), v=trim(c && c.cid);
+  return gdCidOk(v)? v : '';
+}
 function gdCidOk(c){ return /^[0-9]{3,30}-[a-z0-9]{8,64}\.apps\.googleusercontent\.com$/.test(c); }
 function gdState(){
   if(!META.drive || typeof META.drive!=='object'){ META.drive={}; }
@@ -3809,8 +3828,16 @@ function gdLoadLib(cb){
   document.head.appendChild(sc);
 }
 /* Debe llamarse dentro del toque del usuario: la ventana de Google es un popup. */
+function gdWinOk(){
+  var framed=true;
+  try{ framed = window.top!==window.self; }catch(e){ framed=true; }
+  var op=null;
+  try{ op=window.opener; }catch(e2){ op=null; }
+  return !framed && !op;
+}
 function gdToken(cb){
   cb=once(cb);
+  if(!gdWinOk()){ cb('Por seguridad, Google Drive solo se usa con la app abierta directamente (no dentro de otra página ni abierta por otra pestaña). Ábrela desde su link o desde el ícono del teléfono.'); return; }
   if(gdHasTok()){ cb(null); return; }
   var cid=gdCid();
   if(!cid){ cb('Falta el «ID de cliente de Google». Pégalo abajo en esta misma tarjeta (ver instrucciones).'); return; }
@@ -3836,6 +3863,7 @@ function gdToken(cb){
 }
 function gdReq(method, url, body, ctype, cb){
   cb=once(cb);
+  if(!gdWinOk()){ GD.tok=null; GD.exp=0; cb('Ventana no segura para Drive.'); return; }
   var x;
   try{
     x=new XMLHttpRequest();
@@ -4075,12 +4103,14 @@ function renderGd(){
   $('gdAuto').checked=!!d.auto;
   $('bGdUnlink').className= d.fileId? 'btn ghost sm' : 'btn ghost sm hidden';
   if(document.activeElement!==$('gdCid')){ $('gdCid').value=cid; }
+  $('gdCid').readOnly=!!GD_CID_DEF; $('bGdCid').className= GD_CID_DEF? 'btn ghost sm hidden' : 'btn ghost sm';
   $('gdHelp').innerHTML='Cómo obtenerlo (una sola vez, gratis): en console.cloud.google.com crea un proyecto, activa «Google Drive API», configura la pantalla de consentimiento (tipo Externo, agrega tu correo como usuario de prueba) y crea un «ID de cliente OAuth» de tipo «Aplicación web» con este origen autorizado: <b class="mono">'+esc(location.protocol+'//'+location.host)+'</b>';
   gdChip();
 }
 
 function showView(v){
-  if(v==='mas' && gdCid() && gdOriginOk() && !GD.lib){ gdLoadLib(function(){}); }
+  /* solo precarga Google si esta empresa ya está vinculada a Drive (no carga nada de Google a quien no lo usa) */
+  if(v==='mas' && META && gdState().fileId && gdCid() && gdOriginOk() && !GD.lib){ gdLoadLib(function(){}); }
   var views=['stock','ing','sal','kar','oc','ocd','mas','prov','provd','eo','rep'];
   for(var i=0;i<views.length;i++){
     $('v-'+views[i]).className = views[i]===v ? 'view' : 'view hidden';
