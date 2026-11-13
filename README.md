@@ -23,6 +23,7 @@ La app usa el permiso `drive.file`: solo ve los archivos que ella misma creó en
 La página trae una política de seguridad (CSP) que solo permite su propio código y el de Google (para Drive). Los respaldos y archivos de Drive se validan antes de cargarse; si alguno trae datos manipulados, la app lo rechaza.
 
 ## Cambios de la v12
+- El kardex se calcula por orden de fecha (antes, por orden de registro): un ingreso con fecha atrasada entra en su lugar y el costo promedio se recalcula. No se puede registrar una salida o traslado con una fecha en la que no había saldo. Si datos antiguos quedan con saldo negativo en alguna fecha, la cabecera lo avisa.
 - Los códigos internos de cada registro ya no pueden repetirse al crear varios a la vez (catálogo base, recepción de una OC con varios ítems).
 - No se puede anular un ingreso, devolución o traslado si el saldo quedaría negativo: primero hay que anular las salidas posteriores.
 - No se aceptan precios negativos (ingresos y cotizaciones).
