@@ -2,15 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2oAeszhben8Z7tIuCVmZdwLURbFpTa+SLT2rnjW1s3k=' https://accounts.google.com; style-src 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob:; connect-src https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-SPh9Cm8vWpp1epq+YRNRKu5ouhayDJOxFbYY9h8iWDk=' https://accounts.google.com; style-src 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob:; connect-src https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#0F3D3E">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="format-detection" content="telephone=no">
-<title>Control de Almacén de Obra v11</title>
+<title>Control de Almacén de Obra v12</title>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,.08)}
 html{-webkit-text-size-adjust:100%}
@@ -803,7 +805,10 @@ table.cmp td.need{background:#FFF4E5}
 </datalist>
 
 <script>
-/* Control de Almacén de Obra v11 — ES5, sin dependencias (Google Drive se carga solo al usarlo).
+/* Control de Almacén de Obra v12 — ES5, sin dependencias (Google Drive se carga solo al usarlo).
+   v12: ids únicos (ya no pueden repetirse al crear varios registros a la vez), no se puede anular un ingreso,
+        devolución o traslado si el saldo quedaría negativo, precios negativos rechazados, CSV con cantidades de hasta
+        4 decimales, copia sin internet desde la primera visita e íconos para instalar la app.
    v11: refuerzos de la auditoría run-4 (ID de cliente fijo, sin token si la app está enmarcada o abierta por otra página,
         CSV con comas citadas, datos legados validados, «Reemplazar la obra activa» sin enlaces entre obras).
    v10: ID de cliente de Google Drive incluido (no hace falta pegarlo en cada teléfono).
@@ -946,7 +951,12 @@ function parseNum(v){
   var n=parseFloat(v);
   return isNaN(n)?0:n;
 }
-function genId(p){ return (p||'m')+(new Date().getTime())+Math.floor(Math.random()*1000); }
+/* v12: contador por sesión para que dos ids creados en el mismo milisegundo nunca coincidan */
+var GEN_N = 0;
+function genId(p){
+  GEN_N++;
+  return (p||'m')+(new Date().getTime())+'x'+GEN_N.toString(36)+'x'+Math.floor(Math.random()*46656).toString(36);
+}
 function digits(s){ return (''+(s||'')).replace(/[^0-9]/g,''); }
 function toast(msg, ms){
   var t=$('toast');
@@ -1605,7 +1615,7 @@ function renderBrand(){
   $('brandbar').innerHTML=esc(bl);
   $('brandbar').className = bl? 'np' : 'np hidden';
   $('stockCredit').innerHTML = bl? 'Sistema de control · '+esc(bl) : '';
-  $('masCredit').innerHTML = 'Control de Almacén de Obra v11.0'+(bl?(' · '+esc(bl)):'');
+  $('masCredit').innerHTML = 'Control de Almacén de Obra v12.0'+(bl?(' · '+esc(bl)):'');
 }
 
 function renderHeader(){
@@ -2506,6 +2516,7 @@ function saveIngreso(){
 
   if(ingTipo==='C'){
     var p=parseNum($('ingP').value);
+    if(p<0){ toast('El precio unitario no puede ser negativo.'); return; }
     if(p<=0 && !confirm('Precio unitario S/ 0.00. ¿Registrar igual?')){ return; }
     mov.t='I'; mov.p=p;
     mov.alm = multiAlm()? $('ingAlm').value : defaultAlmId();
@@ -2578,6 +2589,16 @@ function anular(movId){
   for(var i=0;i<DB.movs.length;i++){ if(DB.movs[i].id===movId){ idx=i; m=DB.movs[i]; break; } }
   if(idx<0){ return; }
   if(m.t==='E' || m.t==='R'){ eoAnular(m); return; }
+  /* v12: quitar una entrada (o un traslado) no puede dejar saldo negativo */
+  var mtA=findMat(m.mid), undA=mtA? (' '+mtA.und) : '';
+  if((m.t==='I' || m.t==='D') && stockAlm(m.mid, m.alm)-m.q < -EPS){
+    alert('No se puede anular '+m.num+': ese material ya salió del almacén (el saldo de '+almName(m.alm)+' quedaría en '+qty(stockAlm(m.mid, m.alm)-m.q)+undA+'). Anula primero las salidas o traslados posteriores.');
+    return;
+  }
+  if(m.t==='T' && stockAlm(m.mid, m.almTo)-m.q < -EPS){
+    alert('No se puede anular '+m.num+': el material trasladado ya salió de '+almName(m.almTo)+' (su saldo quedaría en '+qty(stockAlm(m.mid, m.almTo)-m.q)+undA+').');
+    return;
+  }
   var extra = m.oc? ' Está vinculado a una OC; su avance de recepción se recalculará.' : '';
   if(!confirm('¿Anular '+m.num+'? El stock y el kardex se recalcularán.'+extra)){ return; }
   DB.movs.splice(idx,1);
@@ -2661,6 +2682,7 @@ function ocSetPrice(idx, mid, v){
   if(!cot){ return; }
   if(!cot.pr){ cot.pr={}; }
   var s=trim(v);
+  if(s!=='' && parseNum(s)<0){ toast('El precio no puede ser negativo.'); renderOCDetail(); return; }
   if(s===''){ delete cot.pr[mid]; }
   else{ cot.pr[mid]=parseNum(s); }
   save();
@@ -2862,6 +2884,12 @@ function csvField(v){
   return v;
 }
 function csvNum(n,d){ return n.toFixed(d).replace('.',','); }
+/* v12: cantidades con hasta 4 decimales (la app las guarda así); mínimo 2 */
+function csvQ(n){
+  if(typeof n!=='number' || isNaN(n)){ n=0; }
+  var s=(Math.round(n*10000)/10000).toFixed(4).replace(/0{1,2}$/,'');
+  return s.replace('.',',');
+}
 function dl(name, mime, content){
   try{
     var blob=new Blob([content],{type:mime});
@@ -2889,9 +2917,9 @@ function csvStock(){
     var mt=list[i];
     out+=csvField(mt.cod)+';'+csvField(mt.nom)+';'+csvField(mt.und);
     if(multiAlm()){
-      for(j=0;j<DB.alms.length;j++){ out+=';'+csvNum(stockAlm(mt.id,DB.alms[j].id),2); }
+      for(j=0;j<DB.alms.length;j++){ out+=';'+csvQ(stockAlm(mt.id,DB.alms[j].id)); }
     }
-    out+=';'+csvNum(stockOf(mt.id),2)+';'+csvNum(mt.min||0,2)+';'
+    out+=';'+csvQ(stockOf(mt.id))+';'+csvQ(mt.min||0)+';'
       +csvNum(avgOf(mt.id),2)+';'+csvNum(valOf(mt.id),2)+'\n';
   }
   dl('stock_valorizado_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
@@ -2906,7 +2934,7 @@ function csvMovs(){
     var pv = m.pid? findProv(m.pid) : null;
     out+=csvField(dmy(m.f))+';'+csvField(m.num)+';'+csvField(tipo)+';'
       +csvField(mt?mt.cod:'')+';'+csvField(mt?mt.nom:'')+';'+csvField(mt?mt.und:'')+';'
-      +csvNum(m.q,2)+';'+csvNum(cu,2)+';'
+      +csvQ(m.q)+';'+csvNum(cu,2)+';'
       +csvField(almName(m.alm))+';'+csvField(m.almTo?almName(m.almTo):'')+';'
       +csvField(m.ocn||'')+';'
       +csvField(m.piso||(m.obra?obraLabel(m.obra,m.obraNom):''))+';'+csvField(m.part||'')+';'+csvField(m.sol||'')+';'
@@ -2925,8 +2953,8 @@ function csvKardex(){
     var r=STATE.rows[i];
     if(r.mid!==mid){ continue; }
     out+=csvField(dmy(r.f))+';'+csvField(r.num)+';'+csvField(movDetail(r.m,mt))+';'
-      +(r.ent?csvNum(r.ent,2):'')+';'+(r.sal?csvNum(r.sal,2):'')+';'
-      +csvNum(r.saldo,2)+';'+csvNum(r.avg,2)+';'+csvNum(r.valSaldo,2)+'\n';
+      +(r.ent?csvQ(r.ent):'')+';'+(r.sal?csvQ(r.sal):'')+';'
+      +csvQ(r.saldo)+';'+csvNum(r.avg,2)+';'+csvNum(r.valSaldo,2)+'\n';
   }
   dl('kardex_'+mt.cod+'_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
 }
@@ -2939,7 +2967,7 @@ function csvPrecios(){
   out+='Fecha;Proveedor;Cantidad;Precio unit (S/);Variación %\n';
   for(var i=0;i<hist.length;i++){
     var h=hist[i];
-    out+=csvField(dmy(h.f))+';'+csvField(h.prov)+';'+csvNum(h.q,2)+';'+csvNum(h.p,2)+';'
+    out+=csvField(dmy(h.f))+';'+csvField(h.prov)+';'+csvQ(h.q)+';'+csvNum(h.p,2)+';'
       +((h.delta===null||h.delta===undefined)?'':csvNum(h.delta,1))+'\n';
   }
   dl('precios_'+mt.cod+'_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
@@ -3421,9 +3449,9 @@ function csvRep(){
   out+=';Total\n';
   for(i=0;i<d.order.length;i++){
     var r=d.rows[d.order[i]], tot=0, line='';
-    for(j=0;j<cols.length;j++){ var v=r.q[j]||0; tot+=v; line+=';'+csvNum(v,2); }
+    for(j=0;j<cols.length;j++){ var v=r.q[j]||0; tot+=v; line+=';'+csvQ(v); }
     if(tot<=EPS){ continue; }
-    out+=csvField(r.cod)+';'+csvField(r.nom)+';'+csvField(r.und)+line+';'+csvNum(tot,2)+'\n';
+    out+=csvField(r.cod)+';'+csvField(r.nom)+';'+csvField(r.und)+line+';'+csvQ(tot)+'\n';
   }
   dl('saldos_entre_obras_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
 }

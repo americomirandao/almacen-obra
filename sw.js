@@ -1,7 +1,16 @@
 /* Control de Almacén de Obra — service worker (solo actúa si la app se sirve por https, p. ej. GitHub Pages).
    Guarda una copia de la app en el teléfono para que abra sin internet. Los datos del almacén NO pasan por aquí. */
-var CACHE = 'almacen-obra-v11';
-self.addEventListener('install', function (e) { self.skipWaiting(); });
+var CACHE = 'almacen-obra-v12';
+/* v12: al instalar guarda la app completa, para que abra sin internet desde la primera visita */
+var ARCHIVOS = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+self.addEventListener('install', function (e) {
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(function (c) {
+    return Promise.all(ARCHIVOS.map(function (a) {
+      return c.add(new Request(a, { cache: 'reload' }))['catch'](function () {});
+    }));
+  }));
+});
 self.addEventListener('activate', function (e) {
   /* borra las copias de versiones anteriores */
   e.waitUntil(caches.keys().then(function (ks) {
