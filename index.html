@@ -2,15 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-2oAeszhben8Z7tIuCVmZdwLURbFpTa+SLT2rnjW1s3k=' https://accounts.google.com; style-src 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob:; connect-src https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-DhcmMvUl5bOnSGBtsqG6QtZtJwvzf1puDhs6NFXpr8c=' https://accounts.google.com; style-src 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob:; connect-src https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#0F3D3E">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="format-detection" content="telephone=no">
-<title>Control de Almacén de Obra v11</title>
+<title>Control de Almacén de Obra v12</title>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:rgba(0,0,0,.08)}
 html{-webkit-text-size-adjust:100%}
@@ -803,7 +805,11 @@ table.cmp td.need{background:#FFF4E5}
 </datalist>
 
 <script>
-/* Control de Almacén de Obra v11 — ES5, sin dependencias (Google Drive se carga solo al usarlo).
+/* Control de Almacén de Obra v12 — ES5, sin dependencias (Google Drive se carga solo al usarlo).
+   v12: kardex calculado por orden de fecha (antes, por orden de registro), con bloqueo de saldos negativos por fecha;
+        ids únicos (ya no pueden repetirse al crear varios registros a la vez), no se puede anular un ingreso,
+        devolución o traslado si el saldo quedaría negativo, precios negativos rechazados, CSV con cantidades de hasta
+        4 decimales, copia sin internet desde la primera visita e íconos para instalar la app.
    v11: refuerzos de la auditoría run-4 (ID de cliente fijo, sin token si la app está enmarcada o abierta por otra página,
         CSV con comas citadas, datos legados validados, «Reemplazar la obra activa» sin enlaces entre obras).
    v10: ID de cliente de Google Drive incluido (no hace falta pegarlo en cada teléfono).
@@ -946,7 +952,12 @@ function parseNum(v){
   var n=parseFloat(v);
   return isNaN(n)?0:n;
 }
-function genId(p){ return (p||'m')+(new Date().getTime())+Math.floor(Math.random()*1000); }
+/* v12: contador por sesión para que dos ids creados en el mismo milisegundo nunca coincidan */
+var GEN_N = 0;
+function genId(p){
+  GEN_N++;
+  return (p||'m')+(new Date().getTime())+'x'+GEN_N.toString(36)+'x'+Math.floor(Math.random()*46656).toString(36);
+}
 function digits(s){ return (''+(s||'')).replace(/[^0-9]/g,''); }
 function toast(msg, ms){
   var t=$('toast');
@@ -1379,14 +1390,58 @@ function mapById(arr){
   for(var i=0;i<arr.length;i++){ o[arr[i].id]=arr[i]; }
   return o;
 }
+/* v12: el kardex se calcula en orden de FECHA; si dos movimientos tienen la misma fecha, en el orden en que se registraron.
+   La lista guardada (db.movs) no cambia de orden, así los respaldos y Drive siguen siendo compatibles. */
+function fKey(m){ return (''+((m && m.f)||'')).substring(0,10); }
+function sortByDate(a){
+  a.sort(function(x,y){ return x.k<y.k?-1:(x.k>y.k?1:(x.i-y.i)); });
+  var out=[];
+  for(var i=0;i<a.length;i++){ out.push(a[i].m); }
+  return out;
+}
+function movsByDate(db){
+  var a=[];
+  for(var i=0;i<db.movs.length;i++){ a.push({k:fKey(db.movs[i]), i:i, m:db.movs[i]}); }
+  return sortByDate(a);
+}
+function ordMovs(){ return (STATE && STATE.ord)? STATE.ord : movsByDate(DB); }
+/* saldo más bajo que llega a tener un material en algún almacén, recorriendo por fecha.
+   skipId: movimiento que se quitaría; extra: movimiento que se agregaría. */
+function minBal(db, mid, skipId, extra){
+  var a=[], i, m, bal={}, res={min:0, f:'', alm:null};
+  for(i=0;i<db.movs.length;i++){
+    m=db.movs[i];
+    if(m.mid===mid && m.id!==skipId){ a.push({k:fKey(m), i:i, m:m}); }
+  }
+  if(extra){ a.push({k:fKey(extra), i:db.movs.length, m:extra}); }
+  var ord=sortByDate(a);
+  function low(alm){ if(bal[alm]<res.min-EPS){ res.min=bal[alm]; res.f=fKey(m); res.alm=alm; } }
+  for(i=0;i<ord.length;i++){
+    m=ord[i];
+    if(m.t==='I' || m.t==='R' || m.t==='D'){ bal[m.alm]=(bal[m.alm]||0)+m.q; }
+    else if(m.t==='T'){ bal[m.alm]=(bal[m.alm]||0)-m.q; bal[m.almTo]=(bal[m.almTo]||0)+m.q; low(m.alm); }
+    else{ bal[m.alm]=(bal[m.alm]||0)-m.q; low(m.alm); }
+  }
+  return res;
+}
+/* devuelve el punto donde el cambio dejaría (o empeoraría) un saldo negativo en alguna fecha; null si no */
+function dateNeg(db, mid, skipId, extra){
+  var b=minBal(db, mid, null, null), n=minBal(db, mid, skipId, extra);
+  return (n.min<-EPS && n.min<b.min-EPS)? n : null;
+}
+function negTxt(ng, db){
+  var nm='(almacén)';
+  for(var i=0;i<db.alms.length;i++){ if(db.alms[i].id===ng.alm){ nm=db.alms[i].nom; } }
+  return 'el saldo de '+nm+' quedaría en '+qty(ng.min)+' al '+dmy(ng.f);
+}
 function computeAll(db){
   db=db||DB;
-  var g={}, a={}, rows=[], rec={}, ocr={}, ps={}, lp={};
+  var g={}, a={}, rows=[], rec={}, ocr={}, ps={}, lp={}, neg={}, ord=movsByDate(db);
   function G(mid){ if(!g[mid]){ g[mid]={q:0,val:0}; } return g[mid]; }
   function A(mid,alm){ var k=mid+'|'+alm; if(!a[k]){ a[k]={q:0,val:0}; } return a[k]; }
   function clamp(s){ if(s.q>-EPS && s.q<EPS){ s.q=0; s.val=0; } }
-  for(var i=0;i<db.movs.length;i++){
-    var m=db.movs[i];
+  for(var i=0;i<ord.length;i++){
+    var m=ord[i];
     var gg=G(m.mid), ent=0, sal=0, avg=0, aa, ad;
     if(m.t==='I' || m.t==='R'){
       aa=A(m.mid,m.alm);
@@ -1412,6 +1467,7 @@ function computeAll(db){
       aa.q-=m.q; aa.val-=m.q*avg;
       sal=m.q; clamp(aa);
     }
+    if(aa.q<-EPS){ neg[m.mid]=1; }
     clamp(gg);
     if(m.t==='I'){
       if(m.oc){ rec[m.oc+'|'+m.mid]=(rec[m.oc+'|'+m.mid]||0)+m.q; ocr[m.oc]=true; }
@@ -1426,7 +1482,7 @@ function computeAll(db){
       saldo:gg.q, avg:(gg.q>EPS?gg.val/gg.q:0), valSaldo:gg.val, m:m
     });
   }
-  return { g:g, a:a, rows:rows, rec:rec, ocr:ocr, ps:ps, lp:lp,
+  return { g:g, a:a, rows:rows, rec:rec, ocr:ocr, ps:ps, lp:lp, neg:neg, ord:ord,
     mi:mapById(db.mats), pi:mapById(db.provs), ai:mapById(db.alms), oi:mapById(db.ocs) };
 }
 function stockOf(mid){ var s=STATE.g[mid]; return s? s.q : 0; }
@@ -1468,9 +1524,9 @@ function movDetail(m, mat){
 }
 
 function priceHistory(mid){
-  var out=[], prev=null;
-  for(var i=0;i<DB.movs.length;i++){
-    var m=DB.movs[i];
+  var out=[], prev=null, om=ordMovs();
+  for(var i=0;i<om.length;i++){
+    var m=om[i];
     if(m.t!=='I' || m.mid!==mid){ continue; }
     var d=null;
     if(prev!==null && prev>EPS){ d=((m.p||0)-prev)/prev*100; }
@@ -1486,17 +1542,17 @@ function lastPaid(mid){
 }
 function provStats(pid){
   if(STATE && STATE.ps){ var c=STATE.ps[pid]; return c? {n:c.n, tot:c.tot, last:c.last} : {n:0, tot:0, last:''}; }
-  var n=0, tot=0, last='';
-  for(var i=0;i<DB.movs.length;i++){
-    var m=DB.movs[i];
+  var n=0, tot=0, last='', om=ordMovs();
+  for(var i=0;i<om.length;i++){
+    var m=om[i];
     if(m.t==='I' && m.pid===pid){ n++; tot+=m.q*(m.p||0); last=m.f; }
   }
   return {n:n, tot:tot, last:last};
 }
 function provMatSummary(pid){
-  var map={}, order=[];
-  for(var i=0;i<DB.movs.length;i++){
-    var m=DB.movs[i];
+  var map={}, order=[], om=ordMovs();
+  for(var i=0;i<om.length;i++){
+    var m=om[i];
     if(m.t!=='I' || m.pid!==pid){ continue; }
     if(!map[m.mid]){ map[m.mid]={n:0,min:m.p||0,max:m.p||0,last:0,f:''}; order.push(m.mid); }
     var e=map[m.mid];
@@ -1605,7 +1661,7 @@ function renderBrand(){
   $('brandbar').innerHTML=esc(bl);
   $('brandbar').className = bl? 'np' : 'np hidden';
   $('stockCredit').innerHTML = bl? 'Sistema de control · '+esc(bl) : '';
-  $('masCredit').innerHTML = 'Control de Almacén de Obra v11.0'+(bl?(' · '+esc(bl)):'');
+  $('masCredit').innerHTML = 'Control de Almacén de Obra v12.0'+(bl?(' · '+esc(bl)):'');
 }
 
 function renderHeader(){
@@ -1621,7 +1677,12 @@ function renderHeader(){
   $('hVal').innerHTML = money(totVal);
   $('hItems').innerHTML = ''+DB.mats.length;
   var hA=$('hAlert');
-  if(low>0){ hA.className=''; hA.innerHTML=low+' bajo mínimo'; }
+  var negN=0;
+  for(var ni=0;ni<DB.mats.length;ni++){ if(STATE.neg[DB.mats[ni].id]){ negN++; } }
+  var hTxt=[];
+  if(low>0){ hTxt.push(low+' bajo mínimo'); }
+  if(negN>0){ hTxt.push(negN+' con saldo negativo en alguna fecha'); }
+  if(hTxt.length){ hA.className=''; hA.innerHTML=hTxt.join(' · '); }
   else{ hA.className='hidden'; }
 }
 function stockAlmFilter(){
@@ -2041,8 +2102,9 @@ function renderProvDetail(){
   $('pdMats').innerHTML = mOut || '<div class="note" style="margin:0">Sin compras aún.</div>';
 
   var bOut='', cnt=0, bRest=0;
-  for(var j=DB.movs.length-1;j>=0;j--){
-    var m=DB.movs[j];
+  var omB=ordMovs();
+  for(var j=omB.length-1;j>=0;j--){
+    var m=omB[j];
     if(m.t!=='I' || m.pid!==p.id){ continue; }
     if(cnt>=LIM.pd){ bRest++; continue; }
     var mt=findMat(m.mid);
@@ -2506,6 +2568,7 @@ function saveIngreso(){
 
   if(ingTipo==='C'){
     var p=parseNum($('ingP').value);
+    if(p<0){ toast('El precio unitario no puede ser negativo.'); return; }
     if(p<=0 && !confirm('Precio unitario S/ 0.00. ¿Registrar igual?')){ return; }
     mov.t='I'; mov.p=p;
     mov.alm = multiAlm()? $('ingAlm').value : defaultAlmId();
@@ -2527,6 +2590,8 @@ function saveIngreso(){
       return;
     }
     mov.t='T'; mov.alm=o; mov.almTo=dts;
+    var ngT=dateNeg(DB, mid, null, mov);
+    if(ngT){ alert('No se puede registrar el traslado con fecha '+dmy(f)+': '+negTxt(ngT, DB)+'. Revisa la fecha.'); return; }
   }
   mov.num=nextNum(mov.t);
   DB.movs.push(mov);
@@ -2566,6 +2631,8 @@ function saveSalida(){
     sol:trim($('salSol').value),
     obs:trim($('salObs').value)
   };
+  var ngS=dateNeg(DB, mid, null, mov);
+  if(ngS){ alert('No se puede registrar la salida con fecha '+dmy(mov.f)+': '+negTxt(ngS, DB)+'. Revisa la fecha o registra antes el ingreso.'); return; }
   mov.num=nextNum('S');
   DB.movs.push(mov);
   save(); renderAll();
@@ -2578,6 +2645,12 @@ function anular(movId){
   for(var i=0;i<DB.movs.length;i++){ if(DB.movs[i].id===movId){ idx=i; m=DB.movs[i]; break; } }
   if(idx<0){ return; }
   if(m.t==='E' || m.t==='R'){ eoAnular(m); return; }
+  /* v12: quitar una entrada (o un traslado) no puede dejar saldo negativo en ninguna fecha */
+  var ngA=dateNeg(DB, m.mid, m.id, null);
+  if(ngA){
+    alert('No se puede anular '+m.num+': ese material ya salió del almacén ('+negTxt(ngA, DB)+'). Anula primero las salidas o traslados posteriores.');
+    return;
+  }
   var extra = m.oc? ' Está vinculado a una OC; su avance de recepción se recalculará.' : '';
   if(!confirm('¿Anular '+m.num+'? El stock y el kardex se recalcularán.'+extra)){ return; }
   DB.movs.splice(idx,1);
@@ -2661,6 +2734,7 @@ function ocSetPrice(idx, mid, v){
   if(!cot){ return; }
   if(!cot.pr){ cot.pr={}; }
   var s=trim(v);
+  if(s!=='' && parseNum(s)<0){ toast('El precio no puede ser negativo.'); renderOCDetail(); return; }
   if(s===''){ delete cot.pr[mid]; }
   else{ cot.pr[mid]=parseNum(s); }
   save();
@@ -2862,6 +2936,12 @@ function csvField(v){
   return v;
 }
 function csvNum(n,d){ return n.toFixed(d).replace('.',','); }
+/* v12: cantidades con hasta 4 decimales (la app las guarda así); mínimo 2 */
+function csvQ(n){
+  if(typeof n!=='number' || isNaN(n)){ n=0; }
+  var s=(Math.round(n*10000)/10000).toFixed(4).replace(/0{1,2}$/,'');
+  return s.replace('.',',');
+}
 function dl(name, mime, content){
   try{
     var blob=new Blob([content],{type:mime});
@@ -2889,9 +2969,9 @@ function csvStock(){
     var mt=list[i];
     out+=csvField(mt.cod)+';'+csvField(mt.nom)+';'+csvField(mt.und);
     if(multiAlm()){
-      for(j=0;j<DB.alms.length;j++){ out+=';'+csvNum(stockAlm(mt.id,DB.alms[j].id),2); }
+      for(j=0;j<DB.alms.length;j++){ out+=';'+csvQ(stockAlm(mt.id,DB.alms[j].id)); }
     }
-    out+=';'+csvNum(stockOf(mt.id),2)+';'+csvNum(mt.min||0,2)+';'
+    out+=';'+csvQ(stockOf(mt.id))+';'+csvQ(mt.min||0)+';'
       +csvNum(avgOf(mt.id),2)+';'+csvNum(valOf(mt.id),2)+'\n';
   }
   dl('stock_valorizado_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
@@ -2906,7 +2986,7 @@ function csvMovs(){
     var pv = m.pid? findProv(m.pid) : null;
     out+=csvField(dmy(m.f))+';'+csvField(m.num)+';'+csvField(tipo)+';'
       +csvField(mt?mt.cod:'')+';'+csvField(mt?mt.nom:'')+';'+csvField(mt?mt.und:'')+';'
-      +csvNum(m.q,2)+';'+csvNum(cu,2)+';'
+      +csvQ(m.q)+';'+csvNum(cu,2)+';'
       +csvField(almName(m.alm))+';'+csvField(m.almTo?almName(m.almTo):'')+';'
       +csvField(m.ocn||'')+';'
       +csvField(m.piso||(m.obra?obraLabel(m.obra,m.obraNom):''))+';'+csvField(m.part||'')+';'+csvField(m.sol||'')+';'
@@ -2925,8 +3005,8 @@ function csvKardex(){
     var r=STATE.rows[i];
     if(r.mid!==mid){ continue; }
     out+=csvField(dmy(r.f))+';'+csvField(r.num)+';'+csvField(movDetail(r.m,mt))+';'
-      +(r.ent?csvNum(r.ent,2):'')+';'+(r.sal?csvNum(r.sal,2):'')+';'
-      +csvNum(r.saldo,2)+';'+csvNum(r.avg,2)+';'+csvNum(r.valSaldo,2)+'\n';
+      +(r.ent?csvQ(r.ent):'')+';'+(r.sal?csvQ(r.sal):'')+';'
+      +csvQ(r.saldo)+';'+csvNum(r.avg,2)+';'+csvNum(r.valSaldo,2)+'\n';
   }
   dl('kardex_'+mt.cod+'_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
 }
@@ -2939,7 +3019,7 @@ function csvPrecios(){
   out+='Fecha;Proveedor;Cantidad;Precio unit (S/);Variación %\n';
   for(var i=0;i<hist.length;i++){
     var h=hist[i];
-    out+=csvField(dmy(h.f))+';'+csvField(h.prov)+';'+csvNum(h.q,2)+';'+csvNum(h.p,2)+';'
+    out+=csvField(dmy(h.f))+';'+csvField(h.prov)+';'+csvQ(h.q)+';'+csvNum(h.p,2)+';'
       +((h.delta===null||h.delta===undefined)?'':csvNum(h.delta,1))+'\n';
   }
   dl('precios_'+mt.cod+'_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
@@ -3267,6 +3347,9 @@ function eoSave(){
   if(!almS || !almD){ toast('Selecciona los almacenes.'); return; }
   var disp=stQ(src.st, smat.id, almS);
   if(q>disp+EPS){ alert('Saldo insuficiente en el almacén de salida. Disponible: '+qty(disp)+' '+smat.und+'.'); return; }
+  var f=$('eoF').value||todayISO();
+  var ngE=dateNeg(src.db, smat.id, null, {t:'E', f:f, mid:smat.id, q:q, alm:almS});
+  if(ngE){ alert('No se puede registrar con fecha '+dmy(f)+': '+negTxt(ngE, src.db)+' en la obra que entrega. Revisa la fecha.'); return; }
   var mode=EO.mode, ref=null;
   if(EO.ref){
     var l=loanByLk(DB, EO.ref);
@@ -3283,7 +3366,7 @@ function eoSave(){
   var avg=stAvg(src.st, smat.id);
   var snaps=[eoSnap(DB), eoSnap(otherDb)];
   var dmat=eoMatchDst(dst.db, smat);
-  var f=$('eoF').value||todayISO(), obs=trim($('eoObs').value), lk=genId('k');
+  var obs=trim($('eoObs').value), lk=genId('k');
   var ms={ id:genId('v'), t:'E', f:f, mid:smat.id, q:q, alm:almS, eo:mode, obra:dst.id, obraNom:dstName, lk:lk, obs:obs };
   var mr={ id:genId('v'), t:'R', f:f, mid:dmat.id, q:q, p:avg, alm:almD, eo:mode, obra:src.id, obraNom:srcName, lk:lk, obs:obs };
   if(ref){ ms.ref=ref; mr.ref=ref; }
@@ -3320,10 +3403,10 @@ function eoAnular(m){
       if(cand.lk===m.lk && cand.t!==m.t && cand.obra===CUR && (!cand.numO || cand.numO===m.num) && (!m.numO || m.numO===cand.num)){ pair=cand; pairIdx=i; break; } }
   }
   /* quitar un ingreso exige que el saldo no quede negativo */
-  if(m.t==='R' && stockAlm(m.mid, m.alm)-m.q < -EPS){
+  if(m.t==='R' && dateNeg(DB, m.mid, m.id, null)){
     alert('No se puede anular: ese material ya se usó en esta obra (el saldo quedaría negativo).'); return;
   }
-  if(pair && pair.t==='R' && stQ(o.st, pair.mid, pair.alm)-pair.q < -EPS){
+  if(pair && pair.t==='R' && dateNeg(o.db, pair.mid, pair.id, null)){
     alert('No se puede anular: «'+o.nom+'» ya usó ese material (su saldo quedaría negativo).'); return;
   }
   var txt='¿Anular '+m.num+' ('+eoKind(m.eo).toLowerCase()+')?';
@@ -3421,9 +3504,9 @@ function csvRep(){
   out+=';Total\n';
   for(i=0;i<d.order.length;i++){
     var r=d.rows[d.order[i]], tot=0, line='';
-    for(j=0;j<cols.length;j++){ var v=r.q[j]||0; tot+=v; line+=';'+csvNum(v,2); }
+    for(j=0;j<cols.length;j++){ var v=r.q[j]||0; tot+=v; line+=';'+csvQ(v); }
     if(tot<=EPS){ continue; }
-    out+=csvField(r.cod)+';'+csvField(r.nom)+';'+csvField(r.und)+line+';'+csvNum(tot,2)+'\n';
+    out+=csvField(r.cod)+';'+csvField(r.nom)+';'+csvField(r.und)+line+';'+csvQ(tot)+'\n';
   }
   dl('saldos_entre_obras_'+todayISO()+'.csv','text/csv;charset=utf-8',out);
 }
